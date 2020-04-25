@@ -1,10 +1,13 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import math
 
+n_arms = 25
 
 p = {
-    1: np.array([0.31, 0.15, 0.14, 0.10]),
-    2: np.array([0.36, 0.18, 0.16, 0.06]),
-    3: np.array([0.20, 0.15, 0.15, 0.10])
+    1: (lambda x : (0.8*math.sin(math.pi*x/100) + 0.1)),
+    2: (lambda x : (0.7*math.sin(math.pi*x/100) + 0.2)),
+    3: (lambda x : (0.5*math.sin(math.pi*x/100) + 0.3))
 }
 
 class PricingEnvironment() :
@@ -13,5 +16,5 @@ class PricingEnvironment() :
         self.probabilities = p[subcampaign]
 
     def round(self, pulled_arm) :
-        reward = np.random.binomial(1, self.probabilities[pulled_arm])
+        reward = np.random.binomial(1, self.probabilities(pulled_arm))
         return reward

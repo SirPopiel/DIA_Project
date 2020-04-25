@@ -8,13 +8,12 @@ from gpts_learner import *
 import pulp
 
 n_arms = 25
+T = 150
+
 min_bid = 0.0
 max_bid = 1.0
 bids = np.linspace(min_bid, max_bid, n_arms)
 sigma = 10
-
-
-T = 150
 
 regrets_per_subcampaign = []
 rewards_per_subcampaign = []
@@ -95,8 +94,8 @@ for choice in range(n_arms):
 '''
 TROVARE L'OTTIMO
 '''
-n_arms = 4
-prices = np.array([55, 70, 80, 95])
+n_arms = 25
+prices = np.linspace(50, 100, n_arms)
 
 env1 = PricingEnvironment(n_arms = n_arms, subcampaign = 1)
 env2 = PricingEnvironment(n_arms = n_arms, subcampaign = 2)
@@ -122,6 +121,27 @@ plt.ylabel("Rewards")
 plt.xlabel("t")
 plt.plot(ts_learner1.collected_rewards, 'r')
 plt.plot(ts_learner2.collected_rewards, 'b')
-plt.plot(ts_learner3.collected_rewards, 'o')
+plt.plot(ts_learner3.collected_rewards, 'k')
+plt.legend(["Sub1","Sub2","Sub3"])
+plt.show()
+
+tot_rew = []
+
+for price in prices:
+    tot_rew.append(price*(sum([p[i+1](price)*adv_rew[i] for i in range(3)])))
+
+plt.figure(1)
+plt.plot(tot_rew)
+plt.show()
+
+opt = prices[np.argmax(tot_rew)]
+print("Best price is: " , opt)
+
+plt.figure(2)
+plt.ylabel("Regret")
+plt.xlabel("t")
+plt.plot(np.cumsum(max(tot_rew) - ts_learner1.collected_rewards), 'r')
+plt.plot(np.cumsum(max(tot_rew) - ts_learner2.collected_rewards), 'b')
+plt.plot(np.cumsum(max(tot_rew) - ts_learner3.collected_rewards), 'k')
 plt.legend(["Sub1","Sub2","Sub3"])
 plt.show()
