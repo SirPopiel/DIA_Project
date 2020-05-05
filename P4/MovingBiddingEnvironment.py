@@ -1,20 +1,23 @@
 import numpy as np
 
+# Functions that assign the number of clicks to a given bid
+# They are monotone increasing in [0,1]
 n_t_to_f = {
-    1: [(lambda x : 100 * (1.0 - np.exp(-4*x + 3*x**3))),
-        (lambda x : 100 * (1.0 - np.exp(-3*x + x**2 + 1*x**3))),
-        (lambda x : 75 * (1.0 - np.exp(-2*x + 1*x**3)))
+    1: [(lambda x : 100 * (1.0 - np.exp(-5*x + 2*x**3))),
+        (lambda x : 100 * (1.0 - np.exp(-5*x + x**2 + 1*x**3))),
+        (lambda x : 75 * (1.0 - np.exp(-4*x + 1*x**3)))
     ],
-    2: [(lambda x : 100 * (1.0 - np.exp(-3*x + x**2 + 1*x**3))),
-        (lambda x : 100 * (1.0 - np.exp(-4*x + 3*x**3))),
-        (lambda x : 75 * (1.0 - np.exp(-2*x + 1*x**3)))
+    2: [(lambda x : 100 * (1.0 - np.exp(-5*x + x**2 + 1*x**3))),
+        (lambda x : 100 * (1.0 - np.exp(-5*x + 2*x**3))),
+        (lambda x : 75 * (1.0 - np.exp(-4*x + 1*x**3)))
     ],
-    3: [(lambda x : 75 * (1.0 - np.exp(-2*x + 1*x**3))),
-        (lambda x : 100 * (1.0 - np.exp(-4*x + 3*x**3))),
-        (lambda x : 100 * (1.0 - np.exp(-3*x + x**2 + 1*x**3)))
+    3: [(lambda x : 75 * (1.0 - np.exp(-4*x + 1*x**3))),
+        (lambda x : 100 * (1.0 - np.exp(-5*x + 2*x**3))),
+        (lambda x : 100 * (1.0 - np.exp(-5*x + x**2 + 1*x**3)))
     ]
 }
 
+# Proportion of the time horizon in which each phase takes place
 n_proportion_phases = {
     1: [0, 0.3, 0.6],
     2: [0, 0.3, 0.5],

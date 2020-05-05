@@ -21,10 +21,12 @@ max_bid = 1.0
 bids = np.linspace(min_bid, max_bid, n_arms_adv)
 sigma = 10
 
-#adv_rew = bid_optimizer(bids, n_arms_adv, sigma, time_horizon,
-#                        sliding_window=True, window_size=window_size,
-#                        verbose=verbose, graphics=graphics)
-adv_rew = [28.31, 67.86, 56.53]
+np.random.seed(0)
+# bid_optimizer returns the number of clicks obtained solving the optimization problem
+adv_rew = bid_optimizer(bids, n_arms_adv, sigma, time_horizon,
+                        sliding_window=True, window_size=window_size,
+                        verbose=verbose, graphics=graphics)
+# adv_rew = [28.31, 67.86, 56.53]           #solo comodo per non runnare bid_optimizer quando si provano le altre parti
 
 n_arms_pricing = 20
 price_min = 50

@@ -7,14 +7,17 @@ from gpts_learner import *
 from SlidingWindowsGPTS_Learner import *
 
 
+
 def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False, window_size=0, verbose=False, graphics=False):
     regrets_per_subcampaign = []
     rewards_per_subcampaign = []
+#    means_subcampaign = []
 
     for subcampaign in [1, 2, 3]:
         if sliding_window:
             env = MovingBiddingEnvironment(bids=bids, sigma=sigma, time_horizon=time_horizon, subcampaign=subcampaign)
             gpts_learner = SlidingWindowsGPTS_Learner(n_arms=n_arms, arms=bids, window_size=window_size)
+            gpts_learner.sigmas[0] = 0
             regrets_per_subcampaign.append([])
         else:
             env = BiddingEnvironment(bids=bids, sigma=sigma, subcampaign=subcampaign)
@@ -27,13 +30,18 @@ def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False, windo
             if sliding_window:
                 regrets_per_subcampaign[subcampaign - 1].append(np.max(env.means) - reward)
 
-
+        print(gpts_learner.means)
+        print(gpts_learner.sigmas)
         #todo: Prendiamo questo come reward o semplicemente i collected_rewards?
         rewards_per_subcampaign.append(gpts_learner.means - gpts_learner.sigmas)
-#        rewards_per_sgpts_rewards_per_experiment.append(gpts_learner.collected_rewards)
+#        rewards_per_subcampaign.append(gpts_learner.collected_rewards)
+        #        rewards_per_sgpts_rewards_per_experiment.append(gpts_learner.collected_rewards)
         if not sliding_window:
             opt = np.max(env.means)  # todo:check this
             regrets_per_subcampaign.append(opt - gpts_learner.collected_rewards)
+
+        # Save the means learned during the for cicle
+#        means_subcampaign.append(gpts_learner.means)
 
     def get_reward(i, sub):
         return rewards_per_subcampaign[sub - 1][i]
@@ -101,4 +109,7 @@ def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False, windo
         plt.legend(["GPTS_1", "GPTS_2", "GPTS_3"])
         plt.show()
 
+    '''
+    Ci serve parte intera dei click o no?
+    '''
     return adv_rew
