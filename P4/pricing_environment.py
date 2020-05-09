@@ -17,7 +17,5 @@ class PricingEnvironment():
         self.prices = prices
 
     def round(self, pulled_arm):
-        print(pulled_arm)
-        print(self.probabilities(self.prices[pulled_arm]))
         reward = np.random.binomial(1, self.probabilities(self.prices[pulled_arm]))
         return reward

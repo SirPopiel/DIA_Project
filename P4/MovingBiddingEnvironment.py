@@ -8,8 +8,8 @@ n_t_to_f = {
         (lambda x : 75 * (1.0 - np.exp(-4*x + 1*x**3)))
     ],
     2: [(lambda x : 100 * (1.0 - np.exp(-5*x + x**2 + 1*x**3))),
-        (lambda x : 100 * (1.0 - np.exp(-5*x + 2*x**3))),
-        (lambda x : 75 * (1.0 - np.exp(-4*x + 1*x**3)))
+        (lambda x : 75 * (1.0 - np.exp(-5*x + 2*x**3))),
+        (lambda x : 100 * (1.0 - np.exp(-4*x + 1*x**3)))
     ],
     3: [(lambda x : 75 * (1.0 - np.exp(-4*x + 1*x**3))),
         (lambda x : 100 * (1.0 - np.exp(-5*x + 2*x**3))),

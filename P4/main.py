@@ -13,7 +13,7 @@ from find_optimum_price import *
 verbose = True
 graphics = True
 n_arms_adv = 25
-time_horizon = 150
+time_horizon = 150          # time used for optimizing the bids
 window_size = 30
 
 min_bid = 0.0
@@ -27,6 +27,7 @@ adv_rew = bid_optimizer(bids, n_arms_adv, sigma, time_horizon,
                         sliding_window=True, window_size=window_size,
                         verbose=verbose, graphics=graphics)
 # adv_rew = [28.31, 67.86, 56.53]           #solo comodo per non runnare bid_optimizer quando si provano le altre parti
+# todo: in fase finale rimuovere questo
 
 n_arms_pricing = 20
 price_min = 50
@@ -39,6 +40,7 @@ for i in range(3):
         ts_learning_subcampaign(n_arms=n_arms_pricing, prices=prices,
                                 subcampaign=i+1, time_horizon=time_horizon)
 
+graphics = False
 if graphics:
     plt.figure(0)
     plt.ylabel("Rewards")

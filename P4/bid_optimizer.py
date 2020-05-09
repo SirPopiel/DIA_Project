@@ -5,19 +5,18 @@ from bidding_environment import *
 from MovingBiddingEnvironment import *
 from gpts_learner import *
 from SlidingWindowsGPTS_Learner import *
+from scipy import interpolate
 
 
 
 def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False, window_size=0, verbose=False, graphics=False):
     regrets_per_subcampaign = []
     rewards_per_subcampaign = []
-#    means_subcampaign = []
 
     for subcampaign in [1, 2, 3]:
         if sliding_window:
             env = MovingBiddingEnvironment(bids=bids, sigma=sigma, time_horizon=time_horizon, subcampaign=subcampaign)
             gpts_learner = SlidingWindowsGPTS_Learner(n_arms=n_arms, arms=bids, window_size=window_size)
-            gpts_learner.sigmas[0] = 0
             regrets_per_subcampaign.append([])
         else:
             env = BiddingEnvironment(bids=bids, sigma=sigma, subcampaign=subcampaign)
@@ -30,18 +29,51 @@ def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False, windo
             if sliding_window:
                 regrets_per_subcampaign[subcampaign - 1].append(np.max(env.means) - reward)
 
-        print(gpts_learner.means)
-        print(gpts_learner.sigmas)
-        #todo: Prendiamo questo come reward o semplicemente i collected_rewards?
-        rewards_per_subcampaign.append(gpts_learner.means - gpts_learner.sigmas)
+        '''
+        We discard low accurate values of gpts_learner.means because they weren't pulled enough and they 
+        would be dragged by higher bids to non realistic values. Moreover, we know that with bid = 0.0 
+        the number of clicks has to be zero. So we interpolate between 0 and the first "accurate" value 
+        we found. We consider "accurate" the first value with std. dev. lower than the median of the std 
+        devs computed
+        '''
+        idx_accurate = np.argwhere(gpts_learner.sigmas < np.median(gpts_learner.sigmas))[0][0]  # todo: trovare un modo più elegante di questo
+        temporary_rewards = gpts_learner.means    # todo: vogliamo sottrarre la dev. std?
+        x = [0, bids[idx_accurate], bids[idx_accurate + 1]]     #todo: questo idx_accurate + 1 teoricamente dà problemi
+        y = [0, temporary_rewards[idx_accurate], temporary_rewards[idx_accurate + 1]]
+        tck = interpolate.splrep(x, y, k=2)
+        xnew = np.linspace(0, bids[idx_accurate], idx_accurate)
+        ynew = interpolate.splev(xnew, tck)
+        temporary_rewards[0:idx_accurate] = ynew
+
+        rewards_per_subcampaign.append(temporary_rewards)
+
+
+
+        # todo: Prendiamo questo come reward o semplicemente i collected_rewards?
+#        rewards_per_subcampaign.append(gpts_learner.means - gpts_learner.sigmas)
+#        rewards_per_subcampaign[subcampaign-1][0] = 0
 #        rewards_per_subcampaign.append(gpts_learner.collected_rewards)
         #        rewards_per_sgpts_rewards_per_experiment.append(gpts_learner.collected_rewards)
         if not sliding_window:
             opt = np.max(env.means)  # todo:check this
             regrets_per_subcampaign.append(opt - gpts_learner.collected_rewards)
 
-        # Save the means learned during the for cicle
-#        means_subcampaign.append(gpts_learner.means)
+    if graphics:
+        if sliding_window:
+            for i in range(3):
+                plt.figure()
+                plt.plot(bids, rewards_per_subcampaign[i], 'o')
+                plt.title("Check on the learned curves")
+        else:
+            x = np.linspace(np.min(bids), np.max(bids), 100)
+            for i in range(3):
+                plt.figure()
+                plt.plot(x, n_to_f[i + 1](x))
+                plt.plot(bids, rewards_per_subcampaign[i], 'o')
+                plt.title("Check on the learned curves")
+                plt.legend(["Real function", "Quadratic interpolation in low bids"])
+
+
 
     def get_reward(i, sub):
         return rewards_per_subcampaign[sub - 1][i]
@@ -83,7 +115,7 @@ def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False, windo
 
     p1_model.solve()
 
-    adv_rew = [[] for _ in range(3)]
+    adv_rew = [0 for _ in range(3)]
 
     for choice in range(n_arms):
         if sub_1_choice[choice].value() == 1.0:
@@ -109,6 +141,7 @@ def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False, windo
         plt.legend(["GPTS_1", "GPTS_2", "GPTS_3"])
         plt.show()
 
+    # todo: leggi qui
     '''
     Ci serve parte intera dei click o no?
     '''
