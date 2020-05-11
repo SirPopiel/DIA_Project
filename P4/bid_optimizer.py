@@ -8,8 +8,8 @@ from SlidingWindowsGPTS_Learner import *
 from scipy import interpolate
 
 
-
-def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False, window_size=0, verbose=False, graphics=False):
+def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False,
+                  window_size=0, verbose=False, graphics=False):
     regrets_per_subcampaign = []
     rewards_per_subcampaign = []
     gpts_learner = []
@@ -37,7 +37,9 @@ def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False, windo
         we found. We consider "accurate" the first value with std. dev. lower than the median of the std 
         devs computed
         '''
-        idx_accurate = np.argwhere(gpts_learner[subcampaign - 1].sigmas < np.median(gpts_learner[subcampaign - 1].sigmas))[0][0]  # todo: trovare un modo più elegante di questo
+        idx_accurate = np.argwhere(gpts_learner[subcampaign - 1].sigmas
+                                   < np.median(gpts_learner[subcampaign - 1].sigmas))[0][0]
+        # todo: trovare un modo più elegante di questo
         temporary_rewards = gpts_learner[subcampaign - 1].means    # todo: vogliamo sottrarre la dev. std?
         x = [0, bids[idx_accurate], bids[idx_accurate + 1]]     #todo: questo idx_accurate + 1 teoricamente dà problemi
         y = [0, temporary_rewards[idx_accurate], temporary_rewards[idx_accurate + 1]]
