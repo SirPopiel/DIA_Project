@@ -12,20 +12,21 @@ from scipy import interpolate
 def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False, window_size=0, verbose=False, graphics=False):
     regrets_per_subcampaign = []
     rewards_per_subcampaign = []
+    gpts_learner = []
 
     for subcampaign in [1, 2, 3]:
         if sliding_window:
             env = MovingBiddingEnvironment(bids=bids, sigma=sigma, time_horizon=time_horizon, subcampaign=subcampaign)
-            gpts_learner = SlidingWindowsGPTS_Learner(n_arms=n_arms, arms=bids, window_size=window_size)
+            gpts_learner.append(SlidingWindowsGPTS_Learner(n_arms=n_arms, arms=bids, window_size=window_size))
             regrets_per_subcampaign.append([])
         else:
             env = BiddingEnvironment(bids=bids, sigma=sigma, subcampaign=subcampaign)
-            gpts_learner = GPTS_Learner(n_arms=n_arms, arms=bids)
+            gpts_learner.append(GPTS_Learner(n_arms=n_arms, arms=bids))
 
         for t in range(time_horizon):
-            pulled_arm = gpts_learner.pull_arm()
+            pulled_arm = gpts_learner[subcampaign - 1].pull_arm()
             reward = env.round(pulled_arm)
-            gpts_learner.update(pulled_arm, reward)
+            gpts_learner[subcampaign - 1].update(pulled_arm, reward)
             if sliding_window:
                 regrets_per_subcampaign[subcampaign - 1].append(np.max(env.means) - reward)
 
@@ -36,8 +37,8 @@ def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False, windo
         we found. We consider "accurate" the first value with std. dev. lower than the median of the std 
         devs computed
         '''
-        idx_accurate = np.argwhere(gpts_learner.sigmas < np.median(gpts_learner.sigmas))[0][0]  # todo: trovare un modo più elegante di questo
-        temporary_rewards = gpts_learner.means    # todo: vogliamo sottrarre la dev. std?
+        idx_accurate = np.argwhere(gpts_learner[subcampaign - 1].sigmas < np.median(gpts_learner[subcampaign - 1].sigmas))[0][0]  # todo: trovare un modo più elegante di questo
+        temporary_rewards = gpts_learner[subcampaign - 1].means    # todo: vogliamo sottrarre la dev. std?
         x = [0, bids[idx_accurate], bids[idx_accurate + 1]]     #todo: questo idx_accurate + 1 teoricamente dà problemi
         y = [0, temporary_rewards[idx_accurate], temporary_rewards[idx_accurate + 1]]
         tck = interpolate.splrep(x, y, k=2)
@@ -48,31 +49,31 @@ def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False, windo
         rewards_per_subcampaign.append(temporary_rewards)
 
 
-
-        # todo: Prendiamo questo come reward o semplicemente i collected_rewards?
-#        rewards_per_subcampaign.append(gpts_learner.means - gpts_learner.sigmas)
-#        rewards_per_subcampaign[subcampaign-1][0] = 0
-#        rewards_per_subcampaign.append(gpts_learner.collected_rewards)
-        #        rewards_per_sgpts_rewards_per_experiment.append(gpts_learner.collected_rewards)
         if not sliding_window:
             opt = np.max(env.means)  # todo:check this
-            regrets_per_subcampaign.append(opt - gpts_learner.collected_rewards)
+            regrets_per_subcampaign.append(opt - gpts_learner[subcampaign - 1].collected_rewards)
+
 
     if graphics:
-        if sliding_window:
-            for i in range(3):
-                plt.figure()
-                plt.plot(bids, rewards_per_subcampaign[i], 'o')
-                plt.title("Check on the learned curves")
-        else:
-            x = np.linspace(np.min(bids), np.max(bids), 100)
-            for i in range(3):
-                plt.figure()
-                plt.plot(x, n_to_f[i + 1](x))
-                plt.plot(bids, rewards_per_subcampaign[i], 'o')
-                plt.title("Check on the learned curves")
+        x_pred = np.atleast_2d(bids).T
+        for i in range(3):
+            y_pred, sigma = gpts_learner[i].gp.predict(x_pred, return_std=True)
+            plt.figure()
+            if sliding_window:
+                plt.plot(bids, rewards_per_subcampaign[i], 'o', label='Quadratic interpolation in low bids')
+            else:
+                x = np.linspace(np.min(bids), np.max(bids), 100)
+                plt.plot(x, n_to_f[i + 1](x), 'r', label='Real function')
+                plt.plot(bids, rewards_per_subcampaign[i], 'o', label='Quadratic interpolation in low bids')
                 plt.legend(["Real function", "Quadratic interpolation in low bids"])
-
+            plt.plot(x_pred, y_pred, 'b-', label=u'Predicted Clicks')
+            plt.fill(np.concatenate([x_pred, x_pred[::-1]]),
+                     np.concatenate([y_pred - 1.96 * sigma, (y_pred + 1.96 * sigma)[::-1]]),
+                     alpha=.5, fc='b', ec='None', label='95% Confidence Interval')
+            plt.xlabel('$x$')
+            plt.ylabel('$n(x)$')
+            plt.title("Check on the learned curves")
+            plt.legend(loc='lower right')
 
 
     def get_reward(i, sub):
@@ -132,14 +133,26 @@ def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False, windo
             adv_rew[2] = get_reward(choice, 3)
 
     if graphics:
-        plt.figure(0)
+        plt.figure()
         plt.xlabel("t")
         plt.ylabel("Regret")
         plt.plot(np.cumsum(regrets_per_subcampaign[0]), 'g')
         plt.plot(np.cumsum(regrets_per_subcampaign[1]), 'b')
         plt.plot(np.cumsum(regrets_per_subcampaign[2]), 'r')
         plt.legend(["GPTS_1", "GPTS_2", "GPTS_3"])
+
+    cumulative_regret = []
+    for i in range(3):
+        cumulative_regret.append(sum(cumulative_regret)*np.ones(time_horizon)
+                                 + regrets_per_subcampaign[i])
+    if graphics:
+        plt.figure()
+        plt.xlabel("t")
+        plt.ylabel("Regret")
+        plt.plot(np.cumsum(cumulative_regret), label='Cumulative regret learning all curves')
+        plt.legend()
         plt.show()
+
 
     # todo: leggi qui
     '''
