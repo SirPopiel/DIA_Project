@@ -1,5 +1,5 @@
 import numpy as np
-
+from data import n_to_f
 
 class BiddingEnvironment():
     def __init__(self, bids, sigma, subcampaign=1):

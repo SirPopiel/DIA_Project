@@ -12,6 +12,6 @@ class TS_Learner(Learner):
 
     def update(self, pulled_arm, reward, price):
         self.t += 1
-        self.update_observations(pulled_arm, reward * price)
+        self.update_observations(pulled_arm, reward*price)
         self.beta_parameters[pulled_arm, 0] = self.beta_parameters[pulled_arm, 0] + reward
         self.beta_parameters[pulled_arm, 1] = self.beta_parameters[pulled_arm, 1] + 1.0 - reward
