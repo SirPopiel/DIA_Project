@@ -13,8 +13,8 @@ from find_optimum_price import *
 verbose = True
 graphics = True
 debug = True  # if True it shows useless plots
-n_arms_adv = 25
-time_horizon = 150  # time used for optimizing the bids
+n_arms_adv = 50
+time_horizon = 30  # time used for optimizing the bids
 window_size = 30
 
 min_bid = 0.0
@@ -25,7 +25,7 @@ sigma = 10
 np.random.seed(0)
 # bid_optimizer returns the number of clicks obtained solving the optimization problem
 adv_rew = bid_optimizer(bids, n_arms_adv, sigma, time_horizon,
-                        sliding_window=False, window_size=window_size,
+                        sliding_window = False, window_size = window_size,
                         verbose=verbose, graphics=graphics)
 # adv_rew = [75.88295209998937, 57.01093426334284, 76.22638762838052]           #solo comodo per non runnare bid_optimizer quando si provano le altre parti
 # todo: in fase finale rimuovere questo

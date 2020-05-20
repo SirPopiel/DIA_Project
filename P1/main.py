@@ -9,6 +9,7 @@ import pulp
 
 n_arms = 25
 T = 150
+np.random.seed(0)
 
 min_bid = 0.0
 max_bid = 1.0
@@ -18,8 +19,8 @@ sigma = 10
 regrets_per_subcampaign = []
 rewards_per_subcampaign = []
 
-for subcampaing in [1, 2, 3]:
-    env = BiddingEnvironment(bids=bids, sigma=sigma, subcampaing=subcampaing)
+for subcampaign in [1, 2, 3]:
+    env = BiddingEnvironment(bids=bids, sigma=sigma, subcampaign=subcampaign)
     gpts_learner = GPTS_Learner(n_arms=n_arms, arms=bids)
     for t in range(T):
         pulled_arm = gpts_learner.pull_arm()
