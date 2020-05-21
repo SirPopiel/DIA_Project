@@ -1,49 +1,55 @@
 import numpy as np
 
-
 verbose = True
 graphics = True
 debug = True  # if True it shows useless plots
+sliding_window = False
+
+adv_budget = 1.0
 n_arms_adv = 25
-time_horizon = 150  # time used for optimizing the bids
-window_size = 30
+time_horizon = 150  # time used for optimizing the budget allocation
+window_size = time_horizon/5
 
 min_budget = 0.0
 max_budget = 1.0
 budgets = np.linspace(min_budget, max_budget, n_arms_adv)
 sigma = 10
 
-n_to_f = {
-    1: (lambda x: 100 * (1.0 - np.exp(-5*x + x**2 + 1*x**3))),
-    2: (lambda x: 75 * (1.0 - np.exp(-5*x + 2*x**3))),
-    3: (lambda x: 100 * (1.0 - np.exp(-4*x + 1*x**3)))
-}
+if sliding_window:
+    # Functions that assign the number of clicks to a given budget
+    # They are monotone increasing in [0,1]
+    n_for_b = {
+        1: [(lambda x: 100 * (1.0 - np.exp(-5 * x + 2 * x ** 3))),
+            (lambda x: 100 * (1.0 - np.exp(-5 * x + x ** 2 + 1 * x ** 3))),
+            (lambda x: 75 * (1.0 - np.exp(-4 * x + 1 * x ** 3)))
+            ],
+        2: [(lambda x: 100 * (1.0 - np.exp(-5 * x + x ** 2 + 1 * x ** 3))),
+            (lambda x: 75 * (1.0 - np.exp(-5 * x + 2 * x ** 3))),
+            (lambda x: 100 * (1.0 - np.exp(-4 * x + 1 * x ** 3)))
+            ],
+        3: [(lambda x: 75 * (1.0 - np.exp(-4 * x + 1 * x ** 3))),
+            (lambda x: 100 * (1.0 - np.exp(-5 * x + 2 * x ** 3))),
+            (lambda x: 100 * (1.0 - np.exp(-5 * x + x ** 2 + 1 * x ** 3)))
+            ]
+    }
 
-# Functions that assign the number of clicks to a given bid
-# They are monotone increasing in [0,1]
-n_t_to_f = {
-    1: [(lambda x: 100 * (1.0 - np.exp(-5*x + 2*x**3))),
-        (lambda x: 100 * (1.0 - np.exp(-5*x + x**2 + 1*x**3))),
-        (lambda x: 75 * (1.0 - np.exp(-4*x + 1*x**3)))
-    ],
-    2: [(lambda x: 100 * (1.0 - np.exp(-5*x + x**2 + 1*x**3))),
-        (lambda x: 75 * (1.0 - np.exp(-5*x + 2*x**3))),
-        (lambda x: 100 * (1.0 - np.exp(-4*x + 1*x**3)))
-    ],
-    3: [(lambda x: 75 * (1.0 - np.exp(-4*x + 1*x**3))),
-        (lambda x: 100 * (1.0 - np.exp(-5*x + 2*x**3))),
-        (lambda x: 100 * (1.0 - np.exp(-5*x + x**2 + 1*x**3)))
-    ]
-}
+    # Proportion of the time horizon in which each phase takes place
+    n_proportion_phases = {
+        1: [0, 0.3, 0.6],
+        2: [0, 0.3, 0.5],
+        3: [0, 0.2, 0.6]
+    }
 
-# Proportion of the time horizon in which each phase takes place
-n_proportion_phases = {
-    1: [0, 0.3, 0.6],
-    2: [0, 0.3, 0.5],
-    3: [0, 0.2, 0.6]
-}
+else:
+    # Functions that assign the number of clicks to a given budget
+    # They are monotone increasing in [0,1]
+    n_for_b = {
+        1: (lambda x: 100 * (1.0 - np.exp(-5 * x + x ** 2 + 1 * x ** 3))),
+        2: (lambda x: 75 * (1.0 - np.exp(-5 * x + 2 * x ** 3))),
+        3: (lambda x: 100 * (1.0 - np.exp(-4 * x + 1 * x ** 3)))
+    }
 
-
+    n_proportion_phases = []
 
 n_arms_pricing = 20
 price_min = 50

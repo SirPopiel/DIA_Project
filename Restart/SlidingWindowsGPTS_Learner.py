@@ -4,11 +4,11 @@ from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 
 from learner import *
 
-
-class GPTS_Learner(Learner):
-    def __init__(self, n_arms, arms):
-        super(GPTS_Learner, self).__init__(n_arms)
+class SlidingWindowsGPTS_Learner(Learner):
+    def __init__(self, n_arms, arms, window_size=30):
+        super(SlidingWindowsGPTS_Learner, self).__init__(n_arms)
         self.arms = arms
+        self.window_size = window_size
         self.means = np.zeros(self.n_arms)
         self.sigmas = np.ones(self.n_arms) * 10
         self.pulled_arms = []
@@ -17,12 +17,17 @@ class GPTS_Learner(Learner):
         self.gp = GaussianProcessRegressor(kernel=kernel, alpha=alpha ** 2, normalize_y=True, n_restarts_optimizer=9)
 
     def update_observations(self, pulled_arm, reward):
-        super(GPTS_Learner, self).update_observations(pulled_arm, reward)
+        super(SlidingWindowsGPTS_Learner, self).update_observations(pulled_arm, reward)
         self.pulled_arms.append(self.arms[pulled_arm])
 
+    def trim_window(self, what):
+        if len(what) <= self.window_size:
+            return what 
+        return what[-self.window_size::]
+
     def update_model(self):
-        x = np.atleast_2d(self.pulled_arms).T
-        y = self.collected_rewards
+        x = np.atleast_2d(self.trim_window(self.pulled_arms)).T
+        y = self.trim_window(self.collected_rewards)
         self.gp.fit(x, y)
         self.means, self.sigmas = self.gp.predict(np.atleast_2d(self.arms).T, return_std=True)
         self.sigmas = np.maximum(self.sigmas, 1e-2)

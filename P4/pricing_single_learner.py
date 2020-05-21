@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 class pricing_single_learner():
     
     # Init: loads pricing environment
-    def __init__(self, env) :
+    def __init__(self, env):
         super().__init__()
         self.env = env
         
