@@ -1,8 +1,9 @@
 import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, RationalQuadratic as RQ, ConstantKernel as C
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 
 from learner import *
+
 
 class GPTS_Learner(Learner):
     def __init__(self, n_arms, arms):
@@ -12,8 +13,7 @@ class GPTS_Learner(Learner):
         self.sigmas = np.ones(self.n_arms) * 10
         self.pulled_arms = []
         alpha = 10.0
-        kernel = C(1.0, (1e3, 1e6)) * RBF(1.0, (1e-3, 1e3))
-        #kernel = C(1.0, (1e-3, 1e3)) *  RQ(length_scale=1.0, alpha=1.0, length_scale_bounds=(1e-05, 100000.0), alpha_bounds=(1e-05, 100000.0))
+        kernel = C(1.0, (1e-3, 1e3)) * RBF(1.0, (1e-3, 1e3))
         self.gp = GaussianProcessRegressor(kernel=kernel, alpha=alpha ** 2, normalize_y=True, n_restarts_optimizer=9)
 
     def update_observations(self, pulled_arm, reward):
@@ -32,6 +32,7 @@ class GPTS_Learner(Learner):
         self.update_observations(pulled_arm, reward)
         self.update_model()
 
-    def pull_arm(self):
+    def pull_arm(self, budget):
         sampled_values = np.random.normal(self.means, self.sigmas)
-        return np.argmax(sampled_values)
+        feasible_idxs = np.argwhere(self.arms <= budget)             # Indices which satisfy the budget allocation
+        return np.argmax(sampled_values[feasible_idxs])

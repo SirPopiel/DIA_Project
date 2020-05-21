@@ -6,6 +6,8 @@ from MovingBiddingEnvironment import *
 from gpts_learner import *
 from SlidingWindowsGPTS_Learner import *
 from scipy import interpolate
+from optimization import *
+import time
 
 
 def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False,
@@ -28,13 +30,17 @@ def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False,
             reward = env.round(pulled_arm)
             gpts_learner[subcampaign - 1].update(pulled_arm, reward)
             if sliding_window:
-                regrets_per_subcampaign[subcampaign - 1].append(np.max(env.means) - reward)
+                #regrets_per_subcampaign[subcampaign - 1].append(np.max(env.means) - reward)
+                regrets_per_subcampaign[subcampaign - 1].append(np.max(env.means) - env.means[pulled_arm])
+        '''
+        Il regret va calcolato così, considerando la media, non le fluttuazioni stocastiche
+        '''
 
         '''
-        We discard low accurate values of gpts_learner.means because they weren't pulled enough and they 
-        would be dragged by higher bids to non realistic values. Moreover, we know that with bid = 0.0 
-        the number of clicks has to be zero. So we interpolate between 0 and the first "accurate" value 
-        we found. We consider "accurate" the first value with std. dev. lower than the median of the std 
+        We discard low accuracy values of gpts_learner.means because they weren't pulled enough and they
+        would be dragged by higher bids to non realistic values. Moreover, we know that with bid = 0.0
+        the number of clicks has to be zero. So we interpolate between 0 and the first "accurate" value
+        we found. We consider "accurate" the first value with std. dev. lower than the median of the std
         devs computed
         '''
         idx_accurate = np.argwhere(gpts_learner[subcampaign - 1].sigmas
@@ -50,16 +56,26 @@ def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False,
 
         rewards_per_subcampaign.append(temporary_rewards)
 
-
+        ### DA MODIFICARE, FUNZIONAVA SOLO CON MAX BID = 1
         if not sliding_window:
             opt = np.max(env.means)  # todo:check this
-            regrets_per_subcampaign.append(opt - gpts_learner[subcampaign - 1].collected_rewards)
+            mean_rewards = []
+            for p in gpts_learner[subcampaign - 1].pulled_arms:
+                mean_rewards.append(env.means[int(p*(n_arms-1))])
+            regrets_per_subcampaign.append(opt - mean_rewards)
+            #regrets_per_subcampaign.append(opt - gpts_learner[subcampaign - 1].collected_rewards)
+
+        '''
+        così dovrebbe essere corretto, seppur non efficiente, la curva è perlomeno monotona
+        '''
 
 
     if graphics:
         x_pred = np.atleast_2d(bids).T
         for i in range(3):
             y_pred, sigma = gpts_learner[i].gp.predict(x_pred, return_std=True)
+            #for hyperparameter in gpts_learner[i].gp.kernel.hyperparameters:
+                 #print("Hyperparameters : ", hyperparameter)
             plt.figure()
             if sliding_window:
                 plt.plot(bids, rewards_per_subcampaign[i], 'o', label='Quadratic interpolation in low bids')
@@ -84,6 +100,15 @@ def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False,
     def get_bid(i):
         return bids[i]
 
+    start_time = time.time()
+    subs = dynamic_opt(range(n_arms),n_arms-1,rewards_per_subcampaign,1)
+    elapsed_time = time.time() - start_time
+    print("Dynamic_time = ", elapsed_time)
+
+    adv_rew = [0 for _ in range(3)]
+
+    """
+    start_time = time.time()
     sub_1_choice = pulp.LpVariable.dicts('sub_1_choice', [i for i in range(n_arms)],
                                          lowBound=0,
                                          upBound=1,
@@ -116,9 +141,11 @@ def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False,
                         sum([get_bid(choice) * sub_3_choice[choice] for choice in range(n_arms)])
                 ) <= 1.0
 
+    p1_model.writeLP(filename = "allocation.lp")
     p1_model.solve()
 
-    adv_rew = [0 for _ in range(3)]
+    elapsed_time = time.time() - start_time
+    print("LP_time = ", elapsed_time)
 
     for choice in range(n_arms):
         if sub_1_choice[choice].value() == 1.0:
@@ -133,6 +160,15 @@ def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False,
             if verbose:
                 print(3, choice, bids[choice], get_reward(choice, 3))
             adv_rew[2] = get_reward(choice, 3)
+
+    """
+    for i in range(len(subs)):
+        adv_rew[i] = get_reward(subs[i], i+1)
+
+
+
+
+
 
     if graphics:
         plt.figure()
