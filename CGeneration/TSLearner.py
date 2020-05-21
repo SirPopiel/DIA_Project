@@ -1,16 +1,17 @@
-from learner import *
+from Learner import *
 
 class TS_Learner(Learner):
-    def __init__(self, n_arms) :
-        super().__init__(n_arms)
+    def __init__(self, context, n_arms,  n_users) :
+        super().__init__(context, n_arms)
         self.beta_parameters = np.ones([n_arms, 2])
+        self.n_users = n_users
 
     def pull_arm(self) :
         idx = np.argmax(np.random.beta(self.beta_parameters[:,0], self.beta_parameters[:,1]))
         return idx
 
-    def update(self, pulled_arm, reward, price) :
+    def update(self, pulled_arm, rewards) :
         self.t += 1
-        self.update_observations(pulled_arm, reward*price)
-        self.beta_parameters[pulled_arm, 0] = self.beta_parameters[pulled_arm, 0] + reward
-        self.beta_parameters[pulled_arm, 1] = self.beta_parameters[pulled_arm, 1] + 1.0 - reward
+        self.update_observations(pulled_arm, rewards)
+        self.beta_parameters[pulled_arm, 0] = self.beta_parameters[pulled_arm, 0] + sum(rewards)
+        self.beta_parameters[pulled_arm, 1] = self.beta_parameters[pulled_arm, 1] + self.n_users - sum(rewards)
