@@ -19,10 +19,10 @@ n_arms_ads = 25 # number of arms for advertising
 n_arms_pricing = 10 # number of arms for pricing
 
 T = 10 # T for Times
-min_bid = 0.0 
+min_bid = 0.0
 max_bid = 1.0
 bids = np.linspace(min_bid, max_bid, n_arms_ads) # bids are a linspace
-sigma = 10 
+sigma = 10
 
 # Presets regrets and rewards that are going to be computed
 regrets_per_subcampaign = []
@@ -44,7 +44,7 @@ ts_learners = [TS_Learner(n_arms=n_arms_pricing) for subcampaign in [1,2,3]]
 for t in range(T):
     # 3 subcampaigns:
     rewards_per_subcampaign = []
-    for subcampaign in [1, 2, 3]:    
+    for subcampaign in [1, 2, 3]:
         ad_bid_to_try = allocations[-1][subcampaign] # pull the allocated arm
         print(allocations)
         n_clicks = ad_envs[subcampaign-1].round(ad_bid_to_try) # gets another random value from it

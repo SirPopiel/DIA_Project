@@ -7,10 +7,11 @@ from SlidingWindowsGPTS_Learner import *
 from good_knapsack import *
 from optimization import dynamic_opt
 
-def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=20, n_experiments=1,
-                     sliding_window=False, window_size=0, graphics=False, verbose=False):
+
+def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=25, n_experiments=1,
+                     sliding_window=False, window_size=0, graphics=False, verbose=True):
     n_arms = len(list_budgets)
-    rewards_per_subcampaign_per_experiment = [[] for _ in range(3)]
+    rewards_per_subcampaign_per_experiment = [[[] for _ in range(n_experiments)] for _ in range(3)]
     budget_index = np.max(np.argwhere(list_budgets <= budget))
 
     for e in range(n_experiments):
@@ -40,12 +41,7 @@ def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=20, n_e
             gpts_learner[subcampaign - 1].gp.fit(x_real, y_real)
 
         # Initializing the budget allocation evenly
-        budget_allocation = np.zeros(3)
-        starting_allocation = np.max(list_budgets[np.argwhere(list_budgets <= budget / 3)]) * np.ones(3)
-
-        for subcampaign in [1, 2, 3]:
-            budget_allocation[subcampaign - 1] = \
-                np.max(list_budgets[np.argwhere(list_budgets <= starting_allocation[subcampaign - 1])])
+        budget_allocation = np.max(list_budgets[np.argwhere(list_budgets <= budget / 3)]) * np.ones(3)
 
         # Starting each experiment
         for t in range(time_horizon):
@@ -55,15 +51,11 @@ def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=20, n_e
                 gpts_learner[subcampaign - 1].update(pulled_arm, reward)
                 rewards_per_subcampaign[subcampaign - 1] = gpts_learner[subcampaign - 1].means
 
-            # new_allocation = good_knapsack(list_budgets, rewards_per_subcampaign, budget)
             budget_allocation = dynamic_opt(budget_list=list_budgets, budget_index=budget_index,
                                             rewards_per_subcampaign=rewards_per_subcampaign)
-            # for subcampaign in [1, 2, 3]:
-            #     budget_allocation[subcampaign - 1] = \
-            #         np.max(list_budgets[np.argwhere(list_budgets <= new_allocation[subcampaign - 1])])
 
         for subcampaign in [1, 2, 3]:
-            rewards_per_subcampaign_per_experiment[subcampaign - 1].append(gpts_learner[subcampaign - 1].means)
+            rewards_per_subcampaign_per_experiment[subcampaign - 1][e] = gpts_learner[subcampaign - 1].means
 
         # if graphics:
         #     x_pred = np.atleast_2d(list_budgets).T
@@ -81,16 +73,30 @@ def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=20, n_e
         #         plt.ylabel('$Number of clicks$')
         #         plt.title("Check on the learned curves")
         #         plt.legend(loc='lower right')
+
+    mean_rewards_per_subcampaign = np.mean(rewards_per_subcampaign_per_experiment, axis=1)
+    final_budget_allocation = dynamic_opt(budget_list=list_budgets, budget_index=budget_index,
+                                          rewards_per_subcampaign=mean_rewards_per_subcampaign)
+
+    if verbose:
+        print("The budget is split as follow:")
+        print(final_budget_allocation)
+
+    budget_indices = [np.max(np.argwhere(list_budgets <= final_budget_allocation[i])) for i in range(3)]
+    adv_rew = [mean_rewards_per_subcampaign[i][budget_indices[i]] for i in range(3)]
+
+    if verbose:
+        print("Expected clicks with the optimal budget allocation")
+        print(adv_rew)
+
     if graphics:
         for i in range(3):
             plt.figure()
             if not sliding_window:
                 x = np.linspace(np.min(list_budgets), np.max(list_budgets), 100)
                 plt.plot(x, n_for_b[i + 1](x), 'r', label='Real function')
-            plt.plot(list_budgets, np.mean(rewards_per_subcampaign_per_experiment[subcampaign - 1], axis=0), 'b.')
+            plt.plot(list_budgets, mean_rewards_per_subcampaign[subcampaign - 1], 'b.')
             plt.xlabel('Budget')
             plt.ylabel('Number of clicks')
-
-    adv_rew = np.zeros(3)
 
     return adv_rew

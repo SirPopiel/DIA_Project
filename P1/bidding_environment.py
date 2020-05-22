@@ -8,19 +8,12 @@ n_to_f = {
 }
 
 class BiddingEnvironment():
-<<<<<<< HEAD
-    def __init__(self, bids, sigma, subcampaign=1):
-        self.bids = bids
-        self.means = n_to_f[subcampaign](bids)
-        self.sigmas = np.ones(len(bids))*sigma
-=======
-    
+
     # The init of bidding environment based on the imagined bidding curves
     def __init__(self, bids, sigma, subcampaing=1):
         self.bids = bids
-        self.means = n_to_f[subcampaing](bids) # Value of the bidding curve 
+        self.means = n_to_f[subcampaing](bids) # Value of the bidding curve
         self.sigmas = np.ones(len(bids))*sigma # Arbitrary std for each bid
->>>>>>> b0e0a95273c63224cee2cd33b83002f73c02af37
 
     # Gets a random normal value around the mean of the pulled arm
     def round(self, pulled_arm):

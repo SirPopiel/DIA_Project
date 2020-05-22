@@ -6,8 +6,8 @@ debug = True  # if True it shows useless plots
 sliding_window = False
 
 adv_budget = 1.0
-n_arms_adv = 25
-time_horizon = 150  # time used for optimizing the budget allocation
+n_arms_adv = 20
+time_horizon = 30  # time used for optimizing the budget allocation
 window_size = time_horizon/5
 
 min_budget = 0.0
