@@ -21,7 +21,7 @@ class Learner() :
             cum_p.append(sum([self.collected_rewards[tosum] for tosum in itn]))
         ret = [hoeffding_bound(i/sum(self.collected_rewards),self.t) for i in cum_p]
         #ret = [i/sum(self.collected_rewards) for i in cum_p]
-        print(ret)
+        #print(ret)
         return ret
 
     def opt_arm_reward(self):

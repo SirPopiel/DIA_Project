@@ -37,17 +37,17 @@ def get_reward(i, sub):
 def get_bid(i):
     return bids[i]
 
-sub_1_choice = pulp.LpVariable.dicts('sub_1_choice', [i for i in range(n_arms)], 
+sub_1_choice = pulp.LpVariable.dicts('sub_1_choice', [i for i in range(n_arms)],
                             lowBound = 0,
                             upBound = 1,
                             cat = pulp.LpInteger)
 
-sub_2_choice = pulp.LpVariable.dicts('sub_2_choice', [i for i in range(n_arms)], 
+sub_2_choice = pulp.LpVariable.dicts('sub_2_choice', [i for i in range(n_arms)],
                             lowBound = 0,
                             upBound = 1,
                             cat = pulp.LpInteger)
 
-sub_3_choice = pulp.LpVariable.dicts('sub_3_choice', [i for i in range(n_arms)], 
+sub_3_choice = pulp.LpVariable.dicts('sub_3_choice', [i for i in range(n_arms)],
                             lowBound = 0,
                             upBound = 1,
                             cat = pulp.LpInteger)
@@ -70,7 +70,7 @@ p1_model += (
     sum([get_bid(choice) * sub_3_choice[choice] for choice in range(n_arms)])
 ) <= 1.0
 
-p1_model.solve() 
+p1_model.solve()
 
 for choice in range(n_arms):
     if sub_1_choice[choice].value() == 1.0:

@@ -22,7 +22,7 @@ class SlidingWindowsGPTS_Learner(Learner):
 
     def trim_window(self, what):
         if len(what) <= self.window_size:
-            return what 
+            return what
         return what[-self.window_size::]
 
     def update_model(self):
