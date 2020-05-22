@@ -9,7 +9,7 @@ from optimization import dynamic_opt
 
 
 def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=25, n_experiments=1,
-                     sliding_window=False, window_size=0, graphics=False, verbose=False):
+                     sliding_window=False, window_size=0, graphics=False, verbose=True):
     n_arms = len(list_budgets)
     rewards_per_subcampaign_per_experiment = [[[] for _ in range(n_experiments)] for _ in range(3)]
     budget_index = np.max(np.argwhere(list_budgets <= budget))
