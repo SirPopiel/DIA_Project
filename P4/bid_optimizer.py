@@ -107,7 +107,7 @@ def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False,
 
     adv_rew = [0 for _ in range(3)]
 
-    """
+
     start_time = time.time()
     sub_1_choice = pulp.LpVariable.dicts('sub_1_choice', [i for i in range(n_arms)],
                                          lowBound=0,
@@ -161,7 +161,7 @@ def bid_optimizer(bids, n_arms, sigma, time_horizon, sliding_window=False,
                 print(3, choice, bids[choice], get_reward(choice, 3))
             adv_rew[2] = get_reward(choice, 3)
 
-    """
+    
     for i in range(len(subs)):
         adv_rew[i] = get_reward(subs[i], i+1)
 

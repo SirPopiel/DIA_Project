@@ -7,38 +7,23 @@ from gts_learner import *
 from gpts_learner import *
 import pulp
 
-<<<<<<< HEAD
 n_arms = 25
 T = 150
 np.random.seed(0)
 
 min_bid = 0.0
-=======
-# Sets initial data
-n_arms = 25 # number of arms
-T = 150 # T for Times
-min_bid = 0.0 
->>>>>>> b0e0a95273c63224cee2cd33b83002f73c02af37
 max_bid = 1.0
 bids = np.linspace(min_bid, max_bid, n_arms) # bids are a linspace
-sigma = 10 
+sigma = 10
 
 # Presets regrets and rewards that are going to be computed
 regrets_per_subcampaign = []
 rewards_per_subcampaign = []
 
-<<<<<<< HEAD
 for subcampaign in [1, 2, 3]:
     env = BiddingEnvironment(bids=bids, sigma=sigma, subcampaign=subcampaign)
-=======
-# 3 subcampaigns:
-for subcampaing in [1, 2, 3]:
-    
-    # Inits the environment and loads the GP learner fot the current subcampaign
-    env = BiddingEnvironment(bids=bids, sigma=sigma, subcampaing=subcampaing)
->>>>>>> b0e0a95273c63224cee2cd33b83002f73c02af37
     gpts_learner = GPTS_Learner(n_arms=n_arms, arms=bids)
-    
+
     # For every time
     for t in range(T):
         pulled_arm = gpts_learner.pull_arm() # pulls the best random arm
@@ -47,7 +32,7 @@ for subcampaing in [1, 2, 3]:
 
     # Appends to the rewards the values at lower CI
     rewards_per_subcampaign.append(gpts_learner.means - gpts_learner.sigmas)
-    
+
     # The regret is computed as the max mean of this subcampaign minus the reward
     opt = np.max(env.means) # todo: check this
     regrets_per_subcampaign.append(opt - gpts_learner.collected_rewards)
@@ -137,17 +122,17 @@ ts_learner3 = TS_Learner(n_arms = n_arms)
 
 # Cycles times
 for t in range(0,T):
-    
+
     # Pulls one arm per subcampaign
     pulled_arm1 = ts_learner1.pull_arm()
     pulled_arm2 = ts_learner2.pull_arm()
     pulled_arm3 = ts_learner3.pull_arm()
-    
+
     # Gets one reward per subcampaign
     reward1 = env1.round(pulled_arm1)
     reward2 = env2.round(pulled_arm2)
     reward3 = env3.round(pulled_arm3)
-    
+
     # Updates one reward per subcampaign
     ts_learner1.update(pulled_arm1, reward1, prices[pulled_arm1])
     ts_learner2.update(pulled_arm2, reward2, prices[pulled_arm2])

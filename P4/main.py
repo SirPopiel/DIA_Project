@@ -11,7 +11,7 @@ from find_optimum_price import *
 verbose = True
 graphics = True
 debug = True  # if True it shows useless plots
-n_arms_adv = 50
+n_arms_adv = 10
 time_horizon = 30  # time used for optimizing the bids
 window_size = 30
 
