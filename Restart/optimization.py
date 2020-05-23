@@ -59,7 +59,7 @@ def main():
     budget_list = [0, 10, 20, 30, 40]
     budget_index = 4
 
-    dynamic_opt(budget_list, budget_index, rewards_per_subcampaign, 1)
+    dynamic_opt(budget_list, budget_index, rewards_per_subcampaign, 0)
 
 
 if __name__ == "__main__":
