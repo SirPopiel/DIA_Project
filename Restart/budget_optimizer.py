@@ -9,7 +9,7 @@ from optimization import dynamic_opt
 
 
 def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=25, n_experiments=1,
-                     sliding_window=False, window_size=0, graphics=False, verbose=True):
+                     sliding_window=False, window_size=0, graphics=False, verbose=False):
     n_arms = len(list_budgets)
     rewards_per_subcampaign_per_experiment = [[[] for _ in range(n_experiments)] for _ in range(3)]
     budget_index = np.max(np.argwhere(list_budgets <= budget))
@@ -36,7 +36,7 @@ def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=25, n_e
             if not sliding_window:
                 y_real = n_for_b[subcampaign](x_real)
             else:
-                y_real = n_for_b[subcampaign][1](x_real)
+                y_real = n_for_b[subcampaign][0](x_real)
             x_real = np.atleast_2d(x_real).T
             gpts_learner[subcampaign - 1].gp.fit(x_real, y_real)
 
@@ -79,15 +79,13 @@ def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=25, n_e
                                           rewards_per_subcampaign=mean_rewards_per_subcampaign)
 
     if verbose:
-        print("The budget is split as follow:")
-        print(final_budget_allocation)
+        print("The budget is split as follow: ", final_budget_allocation)
 
     budget_indices = [np.max(np.argwhere(list_budgets <= final_budget_allocation[i])) for i in range(3)]
     adv_rew = [mean_rewards_per_subcampaign[i][budget_indices[i]] for i in range(3)]
 
     if verbose:
-        print("Expected clicks with the optimal budget allocation")
-        print(adv_rew)
+        print("Expected clicks with the optimal budget allocation: ", adv_rew)
 
     if graphics:
         for i in range(3):
@@ -95,8 +93,20 @@ def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=25, n_e
             if not sliding_window:
                 x = np.linspace(np.min(list_budgets), np.max(list_budgets), 100)
                 plt.plot(x, n_for_b[i + 1](x), 'r', label='Real function')
-            plt.plot(list_budgets, mean_rewards_per_subcampaign[subcampaign - 1], 'b.')
+            plt.plot(list_budgets, mean_rewards_per_subcampaign[i], 'b.')
             plt.xlabel('Budget')
             plt.ylabel('Number of clicks')
+        plt.figure()
+        for i in range(3):
+            plt.plot(list_budgets, mean_rewards_per_subcampaign[i], '.')
+
+    if not sliding_window:
+        real_rewards = [[] for _ in range(3)]
+        for subcampaign in [1, 2, 3]:
+            real_rewards[subcampaign-1] = n_for_b[subcampaign](list_budgets)
+        optimal_budget_allocation = dynamic_opt(budget_list=list_budgets, budget_index=budget_index,
+                                                rewards_per_subcampaign=real_rewards)
+        print("The best budget allocation would have been: ", optimal_budget_allocation)
+        print("with corresponding number of clicks: ", [n_for_b[i+1](optimal_budget_allocation[i]) for i in range(3)])
 
     return adv_rew
