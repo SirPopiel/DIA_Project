@@ -51,15 +51,15 @@ def good_knapsack(list_budgets, rewards_per_subcampaign, budget):
     # Here the magic happens
     p1_model.solve()
 
-    new_allocations = [0 for _ in range(3)]
+    new_allocations = {}
 
     # For each arm gets the reward of the chosen subcampaign
     for choice in range(n_arms):
         if sub_1_choice[choice].value() == 1.0:
-            new_allocations[0] = list_budgets[choice]  # choice
+            new_allocations[1] = choice #list_budgets[choice]  # 
         if sub_2_choice[choice].value() == 1.0:
-            new_allocations[1] = list_budgets[choice]  # choice
+            new_allocations[2] = choice# list_budgets[choice]  # choice
         if sub_3_choice[choice].value() == 1.0:
-            new_allocations[2] = list_budgets[choice]  # choice
+            new_allocations[3] = choice #list_budgets[choice]  # choice
 
     return new_allocations
