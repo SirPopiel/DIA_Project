@@ -5,18 +5,20 @@ import math
 import numpy as np
 # MUST THE LEARNER FORGOT INFORMATIONS AFTER ONE WEEK PASSED? NO
 memory_loss = False
+# MUST THE CONTEXT PROBABILITIES BE STATIC?
+static_prob = False
 # NUMBER OF EXPERIMENTS
-n_experiments = 50
+n_experiments = 1
 # TIME HORIZON AND NUMBER OF CAMPAIGNS
-T = 119
+T = 150
 n_campaigns = 3
 # CLICKS OBTAINED BY ADVERTISING
-clicks = [800, 800, 1200]
+clicks = [40, 37, 77]
 n_users = sum(clicks)
 # PRICES AND THEIR DISCRETIZATION
 n_arms = 20
-price_min = 100
-price_max = 200
+price_min = 250
+price_max = 500
 delta_price = price_max - price_min
 prices = np.linspace(price_min, price_max, n_arms)
 # CONVERSION RATE CURVES
@@ -29,9 +31,9 @@ p = {
 # OPTIMAL PROBABILITIES FOR EACH SUBCAMPAIGN
 opt = []
 for i in range(3):
-    opt.append(max([p[i](arm) for arm in prices]))
+    opt.append(max([p[i](arm)*arm*clicks[i] for arm in prices]))
 # REGRET INITIALIZED AS EMPTY
-regret = [[] for _ in range(3)]
+regrets = [[[] for _ in range(3)] for _ in range(n_experiments)]
 for e in range(n_experiments):
     if not e % 10:
         print(e)
@@ -48,12 +50,13 @@ for e in range(n_experiments):
             c = contexts[cid]
             pulled_arm = learners[cid].pull_arm()
             rewards = environments[cid].round(pulled_arm)
-            learners[cid].update(pulled_arm, rewards)
+            learners[cid].update(pulled_arm, rewards, prices[pulled_arm])
 ########### FOR EVERY SUBCAMPAIGN IN THE CONTEXT WE COMPUTE THE REGRET #######################################
             for sc in range(len(c)):
                 nit = range(sc,len(learners[cid].collected_rewards),len(c))
-                cr = [opt -learners[cid].collected_rewards[cr]/clicks[c[sc]] for cr in nit]
-                regret[c[sc]].append(np.mean(cr))
+                cr = [(opt -learners[cid].collected_rewards[r])/clicks[c[sc]] for r in nit]
+                regrets[e][c[sc]].append(cr)
+            print('context : {}       pulled_arm : {}         reward : {}'.format(c,pulled_arm,[reward*prices[pulled_arm] for reward in rewards]))
 ####### WEEKEND ##############################################################################################
         if not (t + 1) % 7 and t and len(contexts) < 3:
             todel = [] #  TO STORE EVENTUAL CONTEXT TO BE DELETED AFTER SPLIT
@@ -63,7 +66,11 @@ for e in range(n_experiments):
                 if len(c) > 1:
 ################### RETRIEVE SUBCAMPAIGN PROBABILITIES AND EXP. VALUES FROM LEARNER DATAS #####################
                     best_arms, best_arms_rew, best_arm_full, best_arm_rew_full = learners[cid].opt_arm_reward()
-                    context_probabilities = learners[cid].context_p()
+                    if not static_prob:
+                        context_probabilities = learners[cid].context_p()
+                    else:
+                        cclicks= [clicks[sc] for sc in c]
+                        context_probabilities = [cclicks[sc]/sum(cclicks) for sc in c]
 ################### SPLIT CHECK AND EVENTUAL NEW CONTEXTS #####################################################
                     is_split, new_contexts = split(c, best_arms_rew, best_arm_rew_full, context_probabilities)
                     if not is_split: # WE DON'T SPLIT, CONTEXT REMAINS THE SAME
@@ -77,7 +84,7 @@ for e in range(n_experiments):
                             cclicks = [clicks[cid] for cid in c]
                             cp = [p[cid] for cid in c]
                             environments.append(PricingEnvironment(c, cclicks, prices, cp))
-                            learners.append(TS_Learner(c, n_arms, n_users))
+                            learners.append(TS_Learner(c, n_arms, sum(cclicks)))
                         print('Splitted context')
 
             contexts += new_contexts # WE UPDATE ACTUAL CONTEXTS ADDING THE NEW ONES
@@ -86,5 +93,5 @@ for e in range(n_experiments):
                 del learners[d] # WE DELETE OLD LEARNER
                 del environments[d] # WE DELETE OLD ENVIRONMENT
 ################################################################################
-print(regret)
-print(np.cumsum(regret))
+#print(regret)
+#print(np.cumsum(regret))

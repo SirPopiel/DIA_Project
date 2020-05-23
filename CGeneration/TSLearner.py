@@ -10,8 +10,9 @@ class TS_Learner(Learner):
         idx = np.argmax(np.random.beta(self.beta_parameters[:,0], self.beta_parameters[:,1]))
         return idx
 
-    def update(self, pulled_arm, rewards) :
+    def update(self, pulled_arm, rewards, price) :
         self.t += 1
-        self.update_observations(pulled_arm, rewards)
+        #rewards = [price*reward for reward in rewards]
+        self.update_observations(pulled_arm, [price*reward for reward in rewards])
         self.beta_parameters[pulled_arm, 0] = self.beta_parameters[pulled_arm, 0] + sum(rewards)
         self.beta_parameters[pulled_arm, 1] = self.beta_parameters[pulled_arm, 1] + self.n_users - sum(rewards)
