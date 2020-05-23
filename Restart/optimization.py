@@ -38,7 +38,6 @@ def dynamic_opt(budget_list, budget_index, rewards_per_subcampaign, return_mode=
         print(table_sub)
 
     if return_mode == 1:
-
         spesa = []
         for i in range(nrows - 1):
             spesa.append(table_sub[nrows - 1][budget_index][i])
