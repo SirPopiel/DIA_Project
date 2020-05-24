@@ -3,12 +3,17 @@ from TSLearner import *
 from ContextGenerator import split
 import math
 import numpy as np
-# MUST THE LEARNER FORGOT INFORMATIONS AFTER ONE WEEK PASSED? NO
+import matplotlib.pyplot as plt
+# MUST THE LEARNER FORGET INFORMATIONS AFTER ONE WEEK PASSED? NO
 memory_loss = False
+# Split allowed 
+# False -> P4
+# True -> P5
+split_allowed = True
 # MUST THE CONTEXT PROBABILITIES BE STATIC?
 static_prob = False
 # NUMBER OF EXPERIMENTS
-n_experiments = 1
+n_experiments = 5
 # TIME HORIZON AND NUMBER OF CAMPAIGNS
 T = 150
 n_campaigns = 3
@@ -33,7 +38,8 @@ opt = []
 for i in range(3):
     opt.append(max([p[i](arm)*arm*clicks[i] for arm in prices]))
 # REGRET INITIALIZED AS EMPTY
-regrets = [[[] for _ in range(3)] for _ in range(n_experiments)]
+all_rewards = [[[] for _ in range(3)] for _ in range(n_experiments)]
+split_times = []
 for e in range(n_experiments):
     if not e % 10:
         print(e)
@@ -54,11 +60,13 @@ for e in range(n_experiments):
 ########### FOR EVERY SUBCAMPAIGN IN THE CONTEXT WE COMPUTE THE REGRET #######################################
             for sc in range(len(c)):
                 nit = range(sc,len(learners[cid].collected_rewards),len(c))
-                cr = [(opt -learners[cid].collected_rewards[r])/clicks[c[sc]] for r in nit]
-                regrets[e][c[sc]].append(cr)
+                all_rewards[e][c[sc]].append([learners[cid].collected_rewards[r]/clicks[c[sc]] for r in nit][-1])
+            #print(learners[cid].collected_rewards)
+                # cr = [(opt -learners[cid].collected_rewards[r])/clicks[c[sc]] for r in nit]
+                # regrets[e][c[sc]].append(cr)
             print('context : {}       pulled_arm : {}         reward : {}'.format(c,pulled_arm,[reward*prices[pulled_arm] for reward in rewards]))
 ####### WEEKEND ##############################################################################################
-        if not (t + 1) % 7 and t and len(contexts) < 3:
+        if not (t + 1) % 7 and t and len(contexts) < 3 and split_allowed:
             todel = [] #  TO STORE EVENTUAL CONTEXT TO BE DELETED AFTER SPLIT
 ########### I DO THE SPLIT CHECK FOR EVERY CONTEXT SPLITTABLE (> 1 SUBCAMPAIGN) ##############################
             for cid in range(len(contexts)):
@@ -86,6 +94,8 @@ for e in range(n_experiments):
                             environments.append(PricingEnvironment(c, cclicks, prices, cp))
                             learners.append(TS_Learner(c, n_arms, sum(cclicks)))
                         print('Splitted context')
+                        #if not t in split_times:
+                        split_times.append(t)
 
             contexts += new_contexts # WE UPDATE ACTUAL CONTEXTS ADDING THE NEW ONES
             for d in todel:
@@ -95,3 +105,60 @@ for e in range(n_experiments):
 ################################################################################
 #print(regret)
 #print(np.cumsum(regret))
+
+# Note: we collect and print all the splits that happen across all n_experiments
+unique_split_times = list(set(split_times))
+print(unique_split_times)
+#print(all_rewards) # experiment subcampaign time
+# mean on experiments
+mean_rewards = [[np.mean([all_rewards[iexp][isc][itime] for iexp in range(n_experiments)]) for itime in range(T)] for isc in range(3)]
+mean_regrets = [[opt[isc]/clicks[isc] - mean_rewards[isc][itime] for itime in range(T)] for isc in range(3)]
+
+plt.figure(0)
+plt.ylabel("Rewards")
+plt.xlabel("t")
+plt.plot(range(T),mean_rewards[0], 'r')
+plt.plot(range(T),mean_rewards[1], 'g')
+plt.plot(range(T),mean_rewards[2], 'b')
+plt.title("Rewards learning the best price")
+for st in unique_split_times:
+    plt.axvline(st)
+
+plt.figure(1)
+plt.ylabel("Regrets")
+plt.xlabel("t")
+plt.plot(range(T),mean_regrets[0], 'r')
+plt.plot(range(T),mean_regrets[1], 'g')
+plt.plot(range(T),mean_regrets[2], 'b')
+plt.title("Regrets learning the best price")
+for st in unique_split_times:
+    plt.axvline(st)
+
+total_regrets = [sum([mean_regrets[isc][imr]*clicks[isc] for isc in range(3)])/n_users for imr in range(T)]
+plt.figure(2)
+plt.ylabel("Total Regrets")
+plt.xlabel("t")
+plt.plot(range(T), total_regrets, 'b')
+plt.title("Total Regrets learning the best price")
+for st in unique_split_times:
+    plt.axvline(st)
+
+plt.figure(3)
+plt.ylabel("Cumulative Regrets")
+plt.xlabel("t")
+plt.plot(range(T),np.cumsum(mean_regrets[0]), 'r')
+plt.plot(range(T),np.cumsum(mean_regrets[1]), 'g')
+plt.plot(range(T),np.cumsum(mean_regrets[2]), 'b')
+plt.title("Cumulative Regrets learning the best price")
+for st in unique_split_times:
+    plt.axvline(st)
+
+plt.figure(4)
+plt.ylabel("Total Cumulative Regret")
+plt.xlabel("t")
+plt.plot(range(T), np.cumsum(total_regrets), 'b')
+plt.title("Total Cumulative Regret learning the best price")
+for st in unique_split_times:
+    plt.axvline(st)
+
+plt.show()
