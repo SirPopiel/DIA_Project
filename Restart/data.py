@@ -1,13 +1,15 @@
 import numpy as np
+from budget_optimizer import *
+import time
 
 verbose = True
 graphics = True
 debug = True  # if True it shows useless plots
 sliding_window = False
-
+n_experiments = 10
 adv_budget = 1.0
 n_arms_adv = 20
-time_horizon = 30  # time used for optimizing the budget allocation
+time_horizon = 150  # time used for optimizing the budget allocation
 window_size = time_horizon/5
 
 min_budget = 0.0
@@ -39,6 +41,8 @@ if sliding_window:
         2: [0, 0.3, 0.5],
         3: [0, 0.2, 0.6]
     }
+    # Proportion of time horizon where you have an actually different environment
+    abrupt_phases = [0, 0.2, 0.3, 0.5, 0.6]
 
 else:
     # Functions that assign the number of clicks to a given budget
@@ -49,7 +53,8 @@ else:
         3: (lambda x: 100 * (1.0 - np.exp(-4 * x + 1 * x ** 3)))
     }
 
-    n_proportion_phases = []
+    n_proportion_phases = None
+    abrupt_phases = None
 
 n_arms_pricing = 20
 price_min = 50
@@ -62,3 +67,15 @@ p = {
     2: (lambda x: (0.9 * np.exp(-(x - 50) ** (1 / 2) / 20))),
     3: (lambda x: (0.5 * np.exp(-(x - 50) ** (1 / 2) / 20)))
 }
+
+
+def main():
+    start_time = time.time()
+    budget_optimizer(budget=adv_budget, list_budgets=budgets, sigma=sigma, time_horizon=time_horizon,
+                     sliding_window=sliding_window, abrupt_phases=abrupt_phases, n_experiments=n_experiments,
+                     graphics=graphics, verbose=verbose)
+    print("--- %s seconds ---" % (time.time() - start_time))
+
+
+if __name__ == "__main__":
+    main()
