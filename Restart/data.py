@@ -10,7 +10,7 @@ n_experiments = 10
 adv_budget = 1.0
 n_arms_adv = 20
 time_horizon = 150  # time used for optimizing the budget allocation
-window_size = time_horizon/5
+window_size = time_horizon/6
 
 min_budget = 0.0
 max_budget = 1.0
@@ -74,7 +74,7 @@ def main():
     budget_optimizer(budget=adv_budget, list_budgets=budgets, sigma=sigma, time_horizon=time_horizon,
                      sliding_window=sliding_window, abrupt_phases=abrupt_phases, n_experiments=n_experiments,
                      graphics=graphics, verbose=verbose)
-    print("--- %s seconds ---" % (time.time() - start_time))
+    print("\nTotal completion time: \n" + "--- %.2f seconds ---" % (time.time() - start_time))
 
 
 if __name__ == "__main__":
