@@ -45,6 +45,7 @@ ts_learners = [TS_Learner(n_arms=n_arms_pricing) for subcampaign in [1,2,3]]
 for t in range(T):
     # 3 subcampaigns:
     rewards_per_subcampaign = []
+    print(allocations)
     for subcampaign in [1, 2, 3]:
         ad_bid_to_try = allocations[-1][subcampaign] # pull the allocated arm
         n_clicks = ad_envs[subcampaign-1].round(ad_bid_to_try) # gets another random value from it
@@ -52,9 +53,9 @@ for t in range(T):
         for t in range(int(n_clicks)):
             price_to_try = ts_learners[subcampaign-1].pull_arm()
             reward = pricing_envs[subcampaign-1].round(price_to_try)
-            rewards_from_ad += reward*price_to_try
+            rewards_from_ad += reward#*price_to_try
             ts_learners[subcampaign-1].update(price_to_try, reward, price_to_try)
-        rewards_from_ad -= bids[ad_bid_to_try]*scale_factor_for_bid
+        rewards_from_ad -= 0#bids[ad_bid_to_try]*scale_factor_for_bid
         meta_gpts_learners[subcampaign-1].update(ad_bid_to_try, rewards_from_ad) # updates the learner
         # Appends to the rewards the values at lower CI
         rewards_per_subcampaign.append(meta_gpts_learners[subcampaign-1].means - meta_gpts_learners[subcampaign-1].sigmas)
