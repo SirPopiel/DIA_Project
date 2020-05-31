@@ -72,6 +72,8 @@ def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=25, n_e
         budget_sub2 = random.choice(list_budgets[np.argwhere(list_budgets <= budget - budget_sub1)])
         budget_sub3 = random.choice(list_budgets[np.argwhere(list_budgets <= budget - budget_sub1 - budget_sub2)])
         budget_allocation = [budget_sub1, budget_sub2[0], budget_sub3[0]]
+        # In order to don't give any preference over any subcampaign
+        np.random.shuffle(budget_allocation)
 
         if sliding_window:
             last_phase = 0
@@ -152,18 +154,18 @@ def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=25, n_e
         print("The budget is split as follow: ", final_budget_allocation)
         print("Expected clicks with the optimal budget allocation: ", adv_rew)
 
-    if sliding_window:
-        f = open("Output/Non-stationary.txt", "w")
-    else:
-        f = open("Output/Stationary.txt", "w")
-    f.write("Results obtained with " + str(n_experiments) + " and time horizon equal to " + str(time_horizon) + "\n\n")
-
-    if not sliding_window:
-        f.write("The best budget allocation would have been: " + str(optimal_budget_allocation) + "\n")
-        f.write("with corresponding number of clicks: " +
-                str([n_for_b[i + 1](optimal_budget_allocation[i]) for i in range(3)]) + "\n")
-    f.write("The budget is split as follow: " + str(final_budget_allocation) + "\n")
-    f.write("Expected clicks with the optimal budget allocation: " + str(adv_rew) + "\n")
-    f.close()
+    # if sliding_window:
+    #     f = open("Output/Non-stationary.txt", "w")
+    # else:
+    #     f = open("Output/Stationary.txt", "w")
+    # f.write("Results obtained with " + str(n_experiments) + " and time horizon equal to " + str(time_horizon) + "\n\n")
+    #
+    # if not sliding_window:
+    #     f.write("The best budget allocation would have been: " + str(optimal_budget_allocation) + "\n")
+    #     f.write("with corresponding number of clicks: " +
+    #             str([n_for_b[i + 1](optimal_budget_allocation[i]) for i in range(3)]) + "\n")
+    # f.write("The budget is split as follow: " + str(final_budget_allocation) + "\n")
+    # f.write("Expected clicks with the optimal budget allocation: " + str(adv_rew) + "\n")
+    # f.close()
 
     return adv_rew
