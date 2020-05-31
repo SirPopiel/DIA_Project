@@ -5,9 +5,9 @@ graphics = True
 debug = True  # if True it shows useless plots
 sliding_window = False
 
-adv_budget = 1.0
+adv_budget = 40.0
 n_arms_adv = 20
-time_horizon = 30  # time used for optimizing the budget allocation
+time_horizon = 50  # time used for optimizing the budget allocation
 window_size = time_horizon/5
 
 min_budget = 0.0
