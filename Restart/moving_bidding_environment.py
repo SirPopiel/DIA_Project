@@ -1,5 +1,5 @@
 import numpy as np
-from data import n_proportion_phases, n_for_b
+#from data import n_proportion_phases, n_for_b
 
 
 class MovingBiddingEnvironment:

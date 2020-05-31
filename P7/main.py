@@ -41,7 +41,7 @@ allocations = [
 ]
 
 pricing_envs = [PricingEnvironment(n_arms=n_arms_pricing, prices=prices, p=p, subcampaign=subcampaign) for subcampaign in [1,2,3]]
-ts_learners = [TS_Learner(n_arms=n_arms_pricing) for subcampaign in [1,2,3]]
+ts_learner = TS_Learner(n_arms=n_arms_pricing)
 for t in range(T):
     # 3 subcampaigns:
     rewards_per_subcampaign = []
@@ -50,11 +50,12 @@ for t in range(T):
         ad_bid_to_try = allocations[-1][subcampaign] # pull the allocated arm
         n_clicks = ad_envs[subcampaign-1].round(ad_bid_to_try) # gets another random value from it
         rewards_from_ad = 0
+        # TODO: Change order of users' trials
         for t in range(int(n_clicks)):
-            price_to_try = ts_learners[subcampaign-1].pull_arm()
+            price_to_try = ts_learner.pull_arm()
             reward = pricing_envs[subcampaign-1].round(price_to_try)
             rewards_from_ad += reward#*price_to_try
-            ts_learners[subcampaign-1].update(price_to_try, reward, price_to_try)
+            ts_learner.update(price_to_try, reward, price_to_try)
         rewards_from_ad -= 0#bids[ad_bid_to_try]*scale_factor_for_bid
         meta_gpts_learners[subcampaign-1].update(ad_bid_to_try, rewards_from_ad) # updates the learner
         # Appends to the rewards the values at lower CI

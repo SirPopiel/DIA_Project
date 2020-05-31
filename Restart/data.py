@@ -16,6 +16,8 @@ min_budget = 0.0
 max_budget = 1.0
 budgets = np.linspace(min_budget, max_budget, n_arms_adv)
 sigma = 10
+n_for_b = None
+n_proportion_phases = None
 
 if sliding_window:
     # Functions that assign the number of clicks to a given budget
