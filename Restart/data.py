@@ -6,19 +6,11 @@ verbose = True
 graphics = True
 debug = True  # if True it shows useless plots
 sliding_window = False
-<<<<<<< HEAD
-
-adv_budget = 40.0
-n_arms_adv = 20
-time_horizon = 50  # time used for optimizing the budget allocation
-window_size = time_horizon/5
-=======
 n_experiments = 10
 adv_budget = 1.0
 n_arms_adv = 20
 time_horizon = 150  # time used for optimizing the budget allocation
 window_size = time_horizon/6
->>>>>>> 7e076a19216e621a5ff21e1f5db8ce1c9e2b264d
 
 min_budget = 0.0
 max_budget = 1.0
