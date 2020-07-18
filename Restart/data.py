@@ -1,5 +1,6 @@
 import numpy as np
 from budget_optimizer import *
+from budget_optimizer_ts import *
 import time
 
 verbose = True
@@ -45,7 +46,6 @@ if sliding_window:
     }
     # Proportion of time horizon where you have an actually different environment
     abrupt_phases = [0, 0.2, 0.3, 0.5, 0.6]
-
 else:
     # Functions that assign the number of clicks to a given budget
     # They are monotone increasing in [0,1]
@@ -73,9 +73,9 @@ p = {
 
 def main():
     start_time = time.time()
-    budget_optimizer(budget=adv_budget, list_budgets=budgets, sigma=sigma, time_horizon=time_horizon,
-                     sliding_window=sliding_window, abrupt_phases=abrupt_phases, n_experiments=n_experiments,
-                     graphics=graphics, verbose=verbose)
+    budget_optimizer_ts(budget=adv_budget, list_budgets=budgets, sigma=sigma, time_horizon=time_horizon,
+                        sliding_window=sliding_window, abrupt_phases=abrupt_phases, n_experiments=n_experiments,
+                        graphics=graphics, verbose=verbose)
     print("\nTotal completion time: \n" + "--- %.2f seconds ---" % (time.time() - start_time))
 
 
