@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import time
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from bidding_environment import *
 from moving_bidding_environment import *
 from gpts_learner import *
@@ -17,7 +19,24 @@ def t_to_phase(subcampaign, time_horizon, t_):
     return 0
 
 
-def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=25, n_experiments=1,
+def tuning_kernel(f, list_budgets, n_tuning):
+    # Tuning hyper parameters of the gps
+    # In order to do this we assume at this point we know the curves which characterize our environments
+    start_time_tuning = time.time()
+    alpha = 10.0
+    kernel = C(1.0, (1e-3, 1e3)) * RBF(1.0, (1e-3, 1e3))
+    gp = GaussianProcessRegressor(kernel=kernel, alpha=alpha ** 2, normalize_y=True,
+                                  n_restarts_optimizer=9)
+
+    x_real = np.linspace(min(list_budgets), max(list_budgets), n_tuning)
+    y_real = f(x_real) + np.random.randn(n_tuning)*alpha/2
+    x_real = np.atleast_2d(x_real).T
+    gp.fit(x_real, y_real)
+    print("Tuning kernel's hyper-parameters' time: \n" + "--- %.2f seconds ---" % (time.time() - start_time_tuning))
+    return gp.kernel_
+
+
+def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=1000, n_experiments=1,
                      sliding_window=False, window_size=0, abrupt_phases=None, graphics=False, verbose=False):
     n_arms = len(list_budgets)
     rewards_per_subcampaign_per_experiment = [[[] for _ in range(n_experiments)] for _ in range(3)]
@@ -33,9 +52,17 @@ def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=25, n_e
                                                 rewards_per_subcampaign=real_rewards)
         optimal_click = sum([n_for_b[i+1](optimal_budget_allocation[i]) for i in range(3)])
         if verbose:
-            print("The best budget allocation would have been: ", optimal_budget_allocation)
-            print("with corresponding number of clicks: ",
-                  [n_for_b[i+1](optimal_budget_allocation[i]) for i in range(3)])
+            print("The best budget allocation would have been: \n", optimal_budget_allocation)
+            print("with corresponding expected number of clicks: \n",
+                  [n_for_b[i+1](optimal_budget_allocation[i]) for i in range(3)], "\n")
+
+    # Tuning of the hyper parameters of the gpts' kernel
+    # We decide to do it once for all the different phases/functions. In this way we speed up the computational time
+    # The difference in tuning them every time weren't large enough
+    if sliding_window:
+        kernel = tuning_kernel(n_for_b[1][0], list_budgets, n_tuning)
+    else:
+        kernel = tuning_kernel(n_for_b[1], list_budgets, n_tuning)
 
     for e in range(n_experiments):
         start_time_experiment = time.time()
@@ -49,20 +76,12 @@ def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=25, n_e
                 envs.append(MovingBiddingEnvironment(budgets=list_budgets, sigma=sigma, time_horizon=time_horizon,
                                                      subcampaign=subcampaign))
                 gpts_learner.append(SlidingWindowsGPTS_Learner(n_arms=n_arms, arms=list_budgets,
-                                                               window_size=window_size))
+                                                               window_size=window_size, kernel=kernel))
             else:
                 envs.append(BiddingEnvironment(budgets=list_budgets, sigma=sigma, subcampaign=subcampaign))
-                gpts_learner.append(GPTS_Learner(n_arms=n_arms, arms=list_budgets))
-
-            # Tuning hyperparameters of the gps
-            # In order to do this we assume at this point we know the curves which characterize our environments
-            x_real = np.linspace(min(list_budgets), max(list_budgets), n_tuning)
-            if not sliding_window:
-                y_real = n_for_b[subcampaign](x_real)
-            else:
-                y_real = n_for_b[subcampaign][0](x_real)
-            x_real = np.atleast_2d(x_real).T
-            gpts_learner[subcampaign - 1].gp.fit(x_real, y_real)
+                gpts_learner.append(GPTS_Learner(n_arms=n_arms, arms=list_budgets,
+                                                 kernel=kernel))
+#                                                 kernel=tuning_kernel(n_for_b[subcampaign], list_budgets, n_tuning)))
 
         # Initializing the budget allocation evenly
         # budget_allocation = np.max(list_budgets[np.argwhere(list_budgets <= budget / 3)]) * np.ones(3)
@@ -108,8 +127,8 @@ def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=25, n_e
         for subcampaign in [1, 2, 3]:
             rewards_per_subcampaign_per_experiment[subcampaign - 1][e] = gpts_learner[subcampaign - 1].means
 
-        print("%.2f seconds. Experiment " % (time.time()-start_time_experiment) + str(e+1)
-              + " of " + str(n_experiments))
+        print("Experiment " + str(e+1) + " of " + str(n_experiments) +
+              "--- %.2f seconds." % (time.time()-start_time_experiment))
 
     mean_rewards_per_subcampaign = np.mean(rewards_per_subcampaign_per_experiment, axis=1)
     final_budget_allocation = dynamic_opt(budget_list=list_budgets, budget_index=budget_index,
@@ -151,8 +170,8 @@ def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=25, n_e
             fig.savefig('Output/Pictures' + 'Stationary' + 'Cumulative_regret.png')
 
     if verbose:
-        print("The budget is split as follow: ", final_budget_allocation)
-        print("Expected clicks with the optimal budget allocation: ", adv_rew)
+        print("The budget is split as follow: \n", final_budget_allocation)
+        print("Expected clicks with the optimal budget allocation: \n", adv_rew)
 
     # if sliding_window:
     #     f = open("Output/Non-stationary.txt", "w")
