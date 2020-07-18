@@ -1,20 +1,24 @@
 import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
-
 from learner import *
 
 
 class GPTS_Learner(Learner):
-    def __init__(self, n_arms, arms):
+    def __init__(self, n_arms, arms, kernel=None):
         super(GPTS_Learner, self).__init__(n_arms)
         self.arms = arms
-        self.means = np.zeros(self.n_arms)
+        self.means = np.linspace(0, 40, self.n_arms)
         self.sigmas = np.ones(self.n_arms) * 10
         self.pulled_arms = []
         alpha = 10.0
-        kernel = C(1.0, (1e-3, 1e3)) * RBF(1.0, (1e-3, 1e3))
-        self.gp = GaussianProcessRegressor(kernel=kernel, alpha=alpha ** 2, normalize_y=True, n_restarts_optimizer=9)
+        if not kernel:
+            kernel = C(1.0, (1e-3, 1e3)) * RBF(1.0, (1e-3, 1e3))
+            n_restarts = 9
+        else:
+            n_restarts = 0
+        self.gp = GaussianProcessRegressor(kernel=kernel, alpha=alpha ** 2, normalize_y=True,
+                                           n_restarts_optimizer=n_restarts)
 
     def update_observations(self, pulled_arm, reward):
         super(GPTS_Learner, self).update_observations(pulled_arm, reward)

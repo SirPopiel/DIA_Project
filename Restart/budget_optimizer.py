@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import time
+import winsound
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from bidding_environment import *
@@ -186,5 +187,9 @@ def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=1000, n
     # f.write("The budget is split as follow: " + str(final_budget_allocation) + "\n")
     # f.write("Expected clicks with the optimal budget allocation: " + str(adv_rew) + "\n")
     # f.close()
+
+    duration = 2000  # milliseconds
+    freq = 440  # Hz
+    winsound.Beep(freq, duration)
 
     return adv_rew
