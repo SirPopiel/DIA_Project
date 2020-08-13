@@ -11,6 +11,8 @@ from optimization import dynamic_opt
 
 
 def t_to_phase(subcampaign, time_horizon, t_):
+    """Returns the phase from the current time."""
+    
     for p in range(3):
         if n_proportion_phases[subcampaign][p] * time_horizon >= t_:
             return p
