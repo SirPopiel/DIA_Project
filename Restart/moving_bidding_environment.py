@@ -1,6 +1,4 @@
 import numpy as np
-from data import n_proportion_phases, n_for_b
-
 
 class MovingBiddingEnvironment:
     """Moving Bidding Environment Class"""
@@ -18,7 +16,12 @@ class MovingBiddingEnvironment:
 
     def t_to_phase(self):
         """Returns the phase from the current time."""
+<<<<<<< HEAD
 
+=======
+        with open('n_proportion_phases.pkl', 'rb') as f:
+            n_proportion_phases = pickle.load(f)
+>>>>>>> 95afbbd49720da0a8ebdb145dfdc0e1a2ac6f7f3
         for p in range(self.N):
             if n_proportion_phases[self.subcampaign][p] * self.time_horizon >= self.t_:
                 return p
@@ -26,7 +29,12 @@ class MovingBiddingEnvironment:
 
     def round(self, pulled_arm):
         """Simulate the current round of bidding with the given pulled arm. Returns the realization of a random normal with set mean and std."""
+<<<<<<< HEAD
 
+=======
+        with open('n_for_b.pkl', 'rb') as f:
+            n_for_b = pickle.load(f)        
+>>>>>>> 95afbbd49720da0a8ebdb145dfdc0e1a2ac6f7f3
         self.means = n_for_b[self.subcampaign][self.t_to_phase()](self.budgets) # gets the number of clicks for the given budget
         self.t_ += 1 # updates time
         return np.random.normal(self.means[pulled_arm], self.sigmas[pulled_arm])

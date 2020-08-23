@@ -1,3 +1,4 @@
+import pickle
 import numpy as np
 #from budget_optimizer import *
 from budget_optimizer_ts import *
@@ -57,6 +58,12 @@ else:
 
     n_proportion_phases = None
     abrupt_phases = None
+
+with open('n_proportion_phases.pkl', 'wb') as f:
+    pickle.dump(n_proportion_phases, f)
+
+with open('n_for_b.pkl', 'wb') as f:
+    pickle.dump(n_for_b, f)
 
 n_arms_pricing = 20
 price_min = 50
