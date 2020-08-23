@@ -2,11 +2,11 @@ import numpy as np
 
 
 class PricingEnvironment:
-    """Pricing Environment class."""
+    '''Pricing Environment class.'''
     
     def __init__(self, n_arms, prices, p, subcampaign = 1):
-        """Initialize the Pricing Environment class with a number of arms, a list of prices, 
-        a list of conversion rate curves for each subcampaign and the current subcampaign."""
+        '''Initialize the Pricing Environment class with a number of arms, a list of prices, 
+        a list of conversion rate curves for each subcampaign and the current subcampaign.'''
         
         # Assignments and Initializations
         self.n_arms = n_arms
@@ -14,7 +14,7 @@ class PricingEnvironment:
         self.prices = prices
 
     def round(self, pulled_arm):
-        """Simulates the reward as a Bernoulli considering the current probabilities for the pulled arm."""
+        '''Simulates the reward as a Bernoulli considering the current probabilities for the pulled arm.'''
         
         # print(self.probabilities)
         # print(self.prices)
