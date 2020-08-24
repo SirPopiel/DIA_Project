@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import time
-import winsound
+from winsound import Beep
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from bidding_environment import *
@@ -174,22 +174,36 @@ def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=1000, n
         print("The budget is split as follow: \n", final_budget_allocation)
         print("Expected clicks with the optimal budget allocation: \n", adv_rew)
 
-    # if sliding_window:
-    #     f = open("Output/Non-stationary.txt", "w")
-    # else:
-    #     f = open("Output/Stationary.txt", "w")
-    # f.write("Results obtained with " + str(n_experiments) + " and time horizon equal to " + str(time_horizon) + "\n\n")
-    #
-    # if not sliding_window:
-    #     f.write("The best budget allocation would have been: " + str(optimal_budget_allocation) + "\n")
-    #     f.write("with corresponding number of clicks: " +
-    #             str([n_for_b[i + 1](optimal_budget_allocation[i]) for i in range(3)]) + "\n")
-    # f.write("The budget is split as follow: " + str(final_budget_allocation) + "\n")
-    # f.write("Expected clicks with the optimal budget allocation: " + str(adv_rew) + "\n")
-    # f.close()
+    if sliding_window:
+         f = open("Output/Non-stationary.txt", "w")
+    else:
+        f = open("Output/Stationary.txt", "w")
+    f.write("Results obtained with " + str(n_experiments) + " and time horizon equal to " + str(time_horizon) + "\n\n")
 
+    if not sliding_window:
+         f.write("The best budget allocation would have been: " + str(optimal_budget_allocation) + "\n")
+         f.write("with corresponding number of clicks: " +
+                 str([n_for_b[i + 1](optimal_budget_allocation[i]) for i in range(3)]) + "\n")
+    f.write("The budget is split as follow: " + str(final_budget_allocation) + "\n")
+    f.write("Expected clicks with the optimal budget allocation: " + str(adv_rew) + "\n")
+    f.close()
+    """
     duration = 2000  # milliseconds
     freq = 440  # Hz
-    winsound.Beep(freq, duration)
+    Beep(freq, duration)
+    """
+    Beep(659, 125)
+    Beep(659, 125)
+    time.sleep(0.125)
+    Beep(659, 125)
+    time.sleep(0.167)
+    Beep(523, 125)
+    Beep(659, 125)
+    time.sleep(0.125)
+    Beep(784, 125)
+    time.sleep(0.375)
+    Beep(392, 125)
+    time.sleep(0.375)
+
 
     return adv_rew

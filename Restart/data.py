@@ -1,13 +1,12 @@
-import pickle
 import numpy as np
 #from budget_optimizer import *
-from budget_optimizer_ts import *
+#from budget_optimizer_ts import *
 import time
 
 verbose = True
 graphics = True
 debug = True  # if True it shows useless plots
-sliding_window = False
+sliding_window = True
 n_experiments = 10
 adv_budget = 1.0
 n_arms_adv = 20
@@ -59,11 +58,6 @@ else:
     n_proportion_phases = None
     abrupt_phases = None
 
-with open('n_proportion_phases.pkl', 'wb') as f:
-    pickle.dump(n_proportion_phases, f)
-
-with open('n_for_b.pkl', 'wb') as f:
-    pickle.dump(n_for_b, f)
 
 n_arms_pricing = 20
 price_min = 50
@@ -78,6 +72,8 @@ p = {
 }
 
 
+# MAIN DI TEST CURSATO, NON FUNZIONA DATO CHE C'è UN CIRCULAR IMPORT
+'''
 def main():
     start_time = time.time()
     budget_optimizer_ts(budget=adv_budget, list_budgets=budgets, sigma=sigma, time_horizon=time_horizon,
@@ -88,3 +84,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+'''
