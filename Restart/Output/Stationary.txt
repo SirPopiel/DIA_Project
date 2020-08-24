@@ -1,6 +1,6 @@
-Results obtained with 10 and time horizon equal to 150
+Results obtained with 10 and time horizon equal to 100
 
 The best budget allocation would have been: [0.3684210526315789, 0.2631578947368421, 0.3684210526315789]
 with corresponding number of clicks: [80.91683973685895, 54.13345618987316, 75.91731144521951]
-The budget is split as follow: [0.42105263157894735, 0.2631578947368421, 0.3157894736842105]
-Expected clicks with the optimal budget allocation: [77.16098429850031, 42.137879495083915, 53.810562383218894]
+The budget is split as follow: [0.2631578947368421, 0.3157894736842105, 0.42105263157894735]
+Expected clicks with the optimal budget allocation: [45.46607554922965, 53.429702879015544, 80.04532702488768]

@@ -24,15 +24,29 @@ def tuning_kernel(f, list_budgets, n_tuning):
     # Tuning hyper parameters of the gps
     # In order to do this we assume at this point we know the curves which characterize our environments
     start_time_tuning = time.time()
-    alpha = 10.0
-    kernel = C(1.0, (1e-3, 1e3)) * RBF(1.0, (1e-3, 1e3))
+    rng = np.random.seed(0)
+    alpha = 5.0
+    #kernel = C(1e2, (1e1, 1e2)) * RBF(1e-1, (1e-2, 1e1))
+    kernel = C(14.1**2, constant_value_bounds = 'fixed') * RBF(length_scale = 0.271, length_scale_bounds= 'fixed')
     gp = GaussianProcessRegressor(kernel=kernel, alpha=alpha ** 2, normalize_y=True,
-                                  n_restarts_optimizer=9)
+                                  n_restarts_optimizer=9, random_state = rng)
 
     x_real = np.linspace(min(list_budgets), max(list_budgets), n_tuning)
     y_real = f(x_real) + np.random.randn(n_tuning)*alpha/2
     x_real = np.atleast_2d(x_real).T
+    """
+    x = np.linspace(min_budget, max_budget, 25)
+    x = np.repeat(x, 50)
     gp.fit(x_real, y_real)
+
+    y_pred, sigma = gp.predict(x_fit, return_std=True)
+    plt.plot(x_real, y_pred, 'b-', label=u'Predicted Clicks')
+    plt.fill(np.concatenate([x_real, x_real[::-1]]),
+             np.concatenate([y_pred - 1.96 * sigma, (y_pred + 1.96 * sigma)[::-1]]),
+             alpha=.5, fc='b', ec='None', label='95% Confidence Interval')
+    plt.plot(x, n_for_b[1](x), 'r', label='True function')
+    plt.legend()
+    """
     print("Tuning kernel's hyper-parameters' time: \n" + "--- %.2f seconds ---" % (time.time() - start_time_tuning))
     return gp.kernel_
 
@@ -187,23 +201,10 @@ def budget_optimizer(budget, list_budgets, sigma, time_horizon, n_tuning=1000, n
     f.write("The budget is split as follow: " + str(final_budget_allocation) + "\n")
     f.write("Expected clicks with the optimal budget allocation: " + str(adv_rew) + "\n")
     f.close()
-    """
+
     duration = 2000  # milliseconds
     freq = 440  # Hz
     Beep(freq, duration)
-    """
-    Beep(659, 125)
-    Beep(659, 125)
-    time.sleep(0.125)
-    Beep(659, 125)
-    time.sleep(0.167)
-    Beep(523, 125)
-    Beep(659, 125)
-    time.sleep(0.125)
-    Beep(784, 125)
-    time.sleep(0.375)
-    Beep(392, 125)
-    time.sleep(0.375)
 
 
     return adv_rew

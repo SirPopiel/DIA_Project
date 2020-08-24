@@ -6,11 +6,11 @@ import time
 verbose = True
 graphics = True
 debug = True  # if True it shows useless plots
-sliding_window = True
-n_experiments = 10
+sliding_window = False
+n_experiments = 5
 adv_budget = 1.0
 n_arms_adv = 20
-time_horizon = 150  # time used for optimizing the budget allocation
+time_horizon = 400  # time used for optimizing the budget allocation
 window_size = time_horizon/6
 
 min_budget = 0.0
