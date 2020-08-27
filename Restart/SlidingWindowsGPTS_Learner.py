@@ -64,6 +64,7 @@ class SlidingWindowsGPTS_Learner(Learner):
         self.means, self.sigmas = self.gp.predict(np.atleast_2d(self.arms).T, return_std=True)
         self.sigmas = np.maximum(self.sigmas, 1e-2)
 
+
     def update(self, pulled_arm, reward):
         '''Proceeds of 1 time step updating both the observations and the model.'''
         self.t += 1

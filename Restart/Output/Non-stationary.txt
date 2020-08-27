@@ -1,4 +1,4 @@
-Results obtained with 10 and time horizon equal to 100
+Results obtained with 3 and time horizon equal to 200
 
-The budget is split as follow: [0.21052631578947367, 0.21052631578947367, 0.5789473684210527]
-Expected clicks with the optimal budget allocation: [45.06092403481482, 32.322008874896056, 73.03779668656475]
+The budget is split as follow: [0.2631578947368421, 0.3684210526315789, 0.3684210526315789]
+Expected clicks with the optimal budget allocation: [61.03376361498179, 78.60670625960267, 61.44679226689135]
