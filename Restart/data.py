@@ -1,43 +1,52 @@
-import pickle
 import numpy as np
-from budget_optimizer import *
-from budget_optimizer_ts import *
+#from budget_optimizer import *
+#from budget_optimizer_ts import *
 import time
 
-verbose = True
-graphics = True
-debug = True  # if True it shows useless plots
-sliding_window = False
+verbose = False
+graphics = False
+debug = False  # if True it shows useless plots
+sliding_window = True
 n_experiments = 10
 adv_budget = 1.0
-n_arms_adv = 20
-time_horizon = 150  # time used for optimizing the budget allocation
-window_size = time_horizon/6
+n_arms_adv = 30
+#n_arms_adv = [9,17,25,33]
+time_horizon = 200  # time used for optimizing the budget allocation
+window_size = int(time_horizon/10)
 
 min_budget = 0.0
 max_budget = 1.0
-budgets = np.linspace(min_budget, max_budget, n_arms_adv)
+budgets =[]
+
+if isinstance(n_arms_adv, list):
+    for i in range(len(n_arms_adv)):
+        budgets.append(np.linspace(min_budget, max_budget, n_arms_adv[i]))
+else:
+    budgets = [np.linspace(min_budget, max_budget, n_arms_adv)]
+
 sigma = 10
 n_for_b = None
 n_proportion_phases = None
 
 if sliding_window:
-    # Functions that assign the number of clicks to a given budget
+    # Functions that assigns the number of clicks to a given budget
     # They are monotone increasing in [0,1]
     n_for_b = {
         1: [(lambda x: 100 * (1.0 - np.exp(-5 * x + 2 * x ** 3))),
             (lambda x: 100 * (1.0 - np.exp(-5 * x + x ** 2 + 1 * x ** 3))),
-            (lambda x: 75 * (1.0 - np.exp(-4 * x + 1 * x ** 3)))
+            (lambda x: 20 * (1.0 - np.exp(-4 * x + 1 * x ** 3)))
             ],
         2: [(lambda x: 100 * (1.0 - np.exp(-5 * x + x ** 2 + 1 * x ** 3))),
-            (lambda x: 75 * (1.0 - np.exp(-5 * x + 2 * x ** 3))),
+            (lambda x: 20 * (1.0 - np.exp(-5 * x + 2 * x ** 3))),
             (lambda x: 100 * (1.0 - np.exp(-4 * x + 1 * x ** 3)))
             ],
-        3: [(lambda x: 75 * (1.0 - np.exp(-4 * x + 1 * x ** 3))),
+        3: [(lambda x: 20 * (1.0 - np.exp(-4 * x + 1 * x ** 3))),
             (lambda x: 100 * (1.0 - np.exp(-5 * x + 2 * x ** 3))),
             (lambda x: 100 * (1.0 - np.exp(-5 * x + x ** 2 + 1 * x ** 3)))
             ]
     }
+
+    # sliding window funziona su funzioni costanti
 
     # Proportion of the time horizon in which each phase takes place
     n_proportion_phases = {
@@ -59,11 +68,6 @@ else:
     n_proportion_phases = None
     abrupt_phases = None
 
-with open('n_proportion_phases.pkl', 'wb') as f:
-    pickle.dump(n_proportion_phases, f)
-
-with open('n_for_b.pkl', 'wb') as f:
-    pickle.dump(n_for_b, f)
 
 n_arms_pricing = 20
 price_min = 50
@@ -78,6 +82,8 @@ p = {
 }
 
 
+# MAIN DI TEST CURSATO, NON FUNZIONA DATO CHE C'è UN CIRCULAR IMPORT
+'''
 def main():
     start_time = time.time()
     budget_optimizer_ts(budget=adv_budget, list_budgets=budgets, sigma=sigma, time_horizon=time_horizon,
@@ -88,3 +94,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+'''

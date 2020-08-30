@@ -12,6 +12,7 @@ class Learner():
         self.rewards_per_arm = x = [[] for i in range(n_arms)]
         self.collected_rewards = np.array([])
 
+
     def update_observations(self, pulled_arm, reward):
         '''Updates the information on the reward of the current pulled arm.'''
 
