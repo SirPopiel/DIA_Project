@@ -34,6 +34,9 @@ class TS_Learner_Normal(Learner):
 
         # Updates the gaussian parameters
         self.gaussian_parameters[pulled_arm, 1] = 1 / (1/self.gaussian_parameters[pulled_arm, 1] + 1/self.sigma**2)
-        self.gaussian_parameters[pulled_arm, 0] = self.gaussian_parameters[pulled_arm, 1] * \
-                                                  ((self.gaussian_parameters[pulled_arm, 0] /
-                                                    self.gaussian_parameters[pulled_arm, 1]) + reward/self.sigma**2)
+        try:
+            self.gaussian_parameters[pulled_arm, 0] = self.gaussian_parameters[pulled_arm, 1] * \
+                                          ((self.gaussian_parameters[pulled_arm, 0] /
+                                            self.gaussian_parameters[pulled_arm, 1]) + reward/self.sigma**2)
+        except ValueError:
+            pass

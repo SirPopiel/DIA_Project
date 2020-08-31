@@ -1,0 +1,49 @@
+from good_knapsack import *
+from optimization import dynamic_opt
+import numpy as np
+from data import *
+import time
+import matplotlib.pyplot as plt
+
+t_filo = []
+t_cap = []
+
+x = np.arange(10,110,20)
+for n_arms_adv in x:
+    if isinstance(n_arms_adv, list):
+        for i in range(len(n_arms_adv)):
+            budgets.append(np.linspace(min_budget, max_budget, n_arms_adv[i]))
+    else:
+        budgets = [np.linspace(min_budget, max_budget, n_arms_adv)]
+    list_budgets = budgets[0]
+    n_arms = len(list_budgets)
+    budget = 1
+    budget_index = np.max(np.argwhere(list_budgets <= budget))
+    real_rewards = [[] for _ in range(3)]
+    for subcampaign in [1, 2, 3]:
+        real_rewards[subcampaign-1] = n_for_b[subcampaign](list_budgets)
+
+    t1 = []
+    t2 = []
+    for i in range(20):
+        start_time_experiment = time.time()
+        dynamic_opt(budget_list=list_budgets, budget_index=budget_index,
+                                                rewards_per_subcampaign=real_rewards)
+        t1.append(time.time()-start_time_experiment)
+
+        start_time_experiment = time.time()
+        good_knapsack(list_budgets=list_budgets, budget=budget_index,
+                                                rewards_per_subcampaign=real_rewards)
+        t2.append(time.time()-start_time_experiment)
+    t_filo.append(np.mean(t1))
+    t_cap.append(np.mean(t2))
+    print('Tested with ', n_arms_adv, 'arms')
+
+
+print(t_filo)
+print(t_cap)
+
+plt.plot(x,t_filo,'b',label='Dynamic Programming algorithm')
+plt.plot(np.arange(10,100,10),t_cap,'r',label='Integer Linear Programming solver')
+plt.legend()
+plt.show()

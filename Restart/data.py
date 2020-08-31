@@ -3,26 +3,32 @@ import numpy as np
 #from budget_optimizer_ts import *
 import time
 
-verbose = False
-graphics = False
-debug = False  # if True it shows useless plots
-sliding_window = True
-n_experiments = 10
+
+
+verbose = True
+graphics = True
+debug = True  # if True it shows useless plots
+sliding_window = False
+n_experiments = 20
 adv_budget = 1.0
-n_arms_adv = 30
+n_arms_adv = 25
 #n_arms_adv = [9,17,25,33]
-time_horizon = 200  # time used for optimizing the budget allocation
+time_horizon = 300  # time used for optimizing the budget allocation
 window_size = int(time_horizon/10)
 
 min_budget = 0.0
 max_budget = 1.0
 budgets =[]
 
+if sliding_window:
+    graphics = False
+
 if isinstance(n_arms_adv, list):
     for i in range(len(n_arms_adv)):
         budgets.append(np.linspace(min_budget, max_budget, n_arms_adv[i]))
 else:
     budgets = [np.linspace(min_budget, max_budget, n_arms_adv)]
+
 
 sigma = 10
 n_for_b = None
@@ -50,12 +56,16 @@ if sliding_window:
 
     # Proportion of the time horizon in which each phase takes place
     n_proportion_phases = {
-        1: [0, 0.3, 0.6],
-        2: [0, 0.3, 0.5],
+        #1: [0, 0.3, 0.6],
+        #2: [0, 0.3, 0.5],
+        #3: [0, 0.2, 0.6]
+        1: [0, 0.2, 0.6],
+        2: [0, 0.2, 0.6],
         3: [0, 0.2, 0.6]
     }
     # Proportion of time horizon where you have an actually different environment
-    abrupt_phases = [0, 0.2, 0.3, 0.5, 0.6]
+    #abrupt_phases = [0, 0.2, 0.3, 0.5, 0.6]
+    abrupt_phases = [0, 0.2, 0.6]
 else:
     # Functions that assign the number of clicks to a given budget
     # They are monotone increasing in [0,1]

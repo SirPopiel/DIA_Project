@@ -19,12 +19,14 @@ def t_to_phase(subcampaign, time_horizon, t_):
     return 0
 
 
-def budget_optimizer_ts(budget, list_budgets, sigma, time_horizon, n_tuning=1000, n_experiments=1,
+def budget_optimizer_ts(budget, budgets, sigma, time_horizon, n_tuning=1000, n_experiments=1,
                         sliding_window=False, window_size=0, abrupt_phases=None, graphics=False, verbose=False):
-    n_arms = len(list_budgets)
-    rewards_per_subcampaign_per_experiment = [[[] for _ in range(n_experiments)] for _ in range(3)]
-    regrets_per_experiment = [[] for _ in range(n_experiments)]
-    budget_index = np.max(np.argwhere(list_budgets <= budget))
+    for iteration in range(len(budgets)):
+        list_budgets = budgets[iteration]
+        n_arms = len(list_budgets)
+        rewards_per_subcampaign_per_experiment = [[[] for _ in range(n_experiments)] for _ in range(3)]
+        regrets_per_experiment = [[] for _ in range(n_experiments)]
+        budget_index = np.max(np.argwhere(list_budgets <= budget))
 
     # Computing the optimal budget allocation in the case of stationary environment
     if not sliding_window:
@@ -58,13 +60,22 @@ def budget_optimizer_ts(budget, list_budgets, sigma, time_horizon, n_tuning=1000
 
         # Initializing the budget allocation evenly
         # budget_allocation = np.max(list_budgets[np.argwhere(list_budgets <= budget / 3)]) * np.ones(3)
-
+        '''
         # Initializing the budget allocation randomly
         budget_sub1 = random.choice(list_budgets)
         budget_sub2 = random.choice(list_budgets[np.argwhere(list_budgets <= budget - budget_sub1)])
         budget_sub3 = random.choice(list_budgets[np.argwhere(list_budgets <= budget - budget_sub1 - budget_sub2)])
         budget_allocation = [budget_sub1, budget_sub2[0], budget_sub3[0]]
         # In order to don't give any preference over any subcampaign
+        np.random.shuffle(budget_allocation)
+        '''
+
+        i = np.random.randint(round((n_arms-1)/4)-1,round((n_arms-1)/4)+1)
+        j = np.random.randint(round((n_arms-1)/4)-1,round((n_arms-1)/4)+1)
+        #print(i,j,n_arms)
+        # i e j da 0 a n/2
+        # bracci pari se si vuole somma intera
+        budget_allocation = [list_budgets[int(n_arms/2)-i],list_budgets[int(n_arms/2)-j-1],list_budgets[(i+j)]]
         np.random.shuffle(budget_allocation)
 
         if sliding_window:
