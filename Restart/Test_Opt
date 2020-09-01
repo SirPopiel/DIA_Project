@@ -7,8 +7,17 @@ import matplotlib.pyplot as plt
 
 t_filo = []
 t_cap = []
+sigma_filo = []
+sigma_cap = []
+n_exp = 30
+comparison = False
+ic = True
+x = np.arange(10,400,20)
 
-x = np.arange(10,110,20)
+# complessità di ilp è np-completa -> peggio per forza o quasi
+
+# facciamo vedere che scala lineare nel numero di campagne?
+
 for n_arms_adv in x:
     if isinstance(n_arms_adv, list):
         for i in range(len(n_arms_adv)):
@@ -25,25 +34,47 @@ for n_arms_adv in x:
 
     t1 = []
     t2 = []
-    for i in range(20):
+    for i in range(n_exp):
         start_time_experiment = time.time()
         dynamic_opt(budget_list=list_budgets, budget_index=budget_index,
                                                 rewards_per_subcampaign=real_rewards)
         t1.append(time.time()-start_time_experiment)
 
-        start_time_experiment = time.time()
-        good_knapsack(list_budgets=list_budgets, budget=budget_index,
-                                                rewards_per_subcampaign=real_rewards)
-        t2.append(time.time()-start_time_experiment)
+        if comparison:
+            start_time_experiment = time.time()
+            good_knapsack(list_budgets=list_budgets, budget=budget_index,
+                                                    rewards_per_subcampaign=real_rewards)
+            t2.append(time.time()-start_time_experiment)
     t_filo.append(np.mean(t1))
-    t_cap.append(np.mean(t2))
+    if ic:
+        sigma_filo.append((np.var(t1))**0.5)
+    if comparison:
+        t_cap.append(np.mean(t2))
+        if ic:
+            sigma_cap.append((np.var(t2))**0.5)
     print('Tested with ', n_arms_adv, 'arms')
 
 
-print(t_filo)
-print(t_cap)
+#print(t_filo)
+#print(t_cap)
 
 plt.plot(x,t_filo,'b',label='Dynamic Programming algorithm')
-plt.plot(np.arange(10,100,10),t_cap,'r',label='Integer Linear Programming solver')
+
+if ic:
+    sigma_filo = np.asarray(sigma_filo, dtype=np.float32)
+
+    plt.fill(np.concatenate([x, x[::-1]]),
+             np.concatenate([t_filo - 1.96 * sigma_filo/(n_exp)**(0.5), (t_filo + 1.96 * sigma_filo/(n_exp)**0.5)[::-1]]),
+             alpha=.5, fc='b', ec='None', label='95% Confidence Interval')
+
+if comparison:
+
+    plt.plot(x,t_cap,'r',label='Integer Linear Programming solver')
+
+    if ic:
+        sigma_cap = np.asarray(sigma_cap, dtype=np.float32)
+        plt.fill(np.concatenate([x, x[::-1]]),
+                 np.concatenate([t_cap - 1.96 * sigma_cap/(n_exp)**(0.5), (t_cap + 1.96 * sigma_cap/(n_exp)**0.5)[::-1]]),
+                 alpha=.5, fc='r', ec='None', label='95% Confidence Interval')
 plt.legend()
 plt.show()
