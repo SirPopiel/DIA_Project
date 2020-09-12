@@ -12,6 +12,10 @@ from SlidingWindowsGPTS_Learner import *
 from good_knapsack import *
 from optimization import dynamic_opt
 
+#seed = 15
+#random.seed(seed)
+#np.random.seed(seed)
+
 
 def t_to_phase(subcampaign, time_horizon, t_):
     for p in range(3):
@@ -112,23 +116,35 @@ def budget_optimizer(budget, budgets, sigma, time_horizon, n_tuning=1000, n_expe
             # sbagliato, ma sbagliato anche mettere split troppo vicine a 0!!! In ogni caso avrò sottostima
 
             # Initializing the budget allocation randomly
-            """
+            '''
             budget_sub1 = random.choice(list_budgets)
             budget_sub2 = random.choice(list_budgets[np.argwhere(list_budgets <= budget - budget_sub1)])
             budget_sub3 = random.choice(list_budgets[np.argwhere(list_budgets <= budget - budget_sub1 - budget_sub2)])
             budget_allocation = [budget_sub1, budget_sub2[0], budget_sub3[0]]
             # In order to don't give any preference over any subcampaign
             np.random.shuffle(budget_allocation)
-            """
-            i = np.random.randint(round((n_arms-1)/4)-1,round((n_arms-1)/4)+1)
-            j = np.random.randint(round((n_arms-1)/4)-1,round((n_arms-1)/4)+1)
-            #print(i,j,n_arms)
-            # i e j da 0 a n/2
-            # bracci pari se si vuole somma intera
-            budget_allocation = [list_budgets[int(n_arms/2)-i],list_budgets[int(n_arms/2)-j-1],list_budgets[(i+j)]]
-            np.random.shuffle(budget_allocation)
+            '''
+            if not n_arms%2:
+                i = np.random.randint(round((n_arms-1)/4)-1,round((n_arms-1)/4)+1)
+                j = np.random.randint(round((n_arms-1)/4)-1,round((n_arms-1)/4)+1)
+                #print(i,j,n_arms)
+                # i e j da 0 a n/2
+                # bracci pari se si vuole somma intera
+                budget_allocation = [list_budgets[int(n_arms/2)-i],list_budgets[int(n_arms/2)-j-1],list_budgets[(i+j)]]
+                np.random.shuffle(budget_allocation)
 
-            print(budget_allocation)
+            else:
+                # Somma a 1
+                i = np.random.randint(round((n_arms-1)/4)-1,round((n_arms-1)/4)+1)
+                j = np.random.randint(round((n_arms-1)/4)-1,round((n_arms-1)/4)+1)
+                #print(i,j,n_arms)
+                # i e j da 0 a n/2
+                # bracci pari se si vuole somma intera
+                budget_allocation = [list_budgets[int(n_arms/2)-i],list_budgets[int(n_arms/2)-j-1],list_budgets[(i+j)]]
+                np.random.shuffle(budget_allocation)
+
+
+            print('budget iniziale: ', budget_allocation)
 
 
             if sliding_window:
@@ -142,15 +158,18 @@ def budget_optimizer(budget, budgets, sigma, time_horizon, n_tuning=1000, n_expe
                     for subcampaign in [1, 2, 3]:
                         phase_sub = t_to_phase(subcampaign, time_horizon, t)
                         real_rewards[subcampaign - 1] = n_for_b[subcampaign][phase_sub](list_budgets)
-                    optimal_budget_allocation = dynamic_opt(budget_list=list_budgets, budget_index=budget_index,
+                    if (t!=1):
+                        optimal_budget_allocation = dynamic_opt(budget_list=list_budgets, budget_index=budget_index,
                                                             rewards_per_subcampaign=real_rewards)
                     optimal_click = sum([n_for_b[i + 1][phase_sub](optimal_budget_allocation[i]) for i in range(3)])
                     last_phase += 1
 
+
                 # Starting exploration of our environments
                 for subcampaign in [1, 2, 3]:
                     pulled_arm = gpts_learner[subcampaign - 1].pull_arm(budget_allocation[subcampaign - 1])
-                    reward = envs[subcampaign - 1].round(pulled_arm)
+                    reward = max(envs[subcampaign - 1].round(pulled_arm),0)
+                    #reward = envs[subcampaign - 1].round(pulled_arm)
                     collected_rewards_per_subcampaign[subcampaign - 1] = reward
                     gpts_learner[subcampaign - 1].update(pulled_arm, reward)
                     gpts_learner[subcampaign - 1].means[0] = 0          # Already know that to budget=0 I get 0 clicks
@@ -158,8 +177,10 @@ def budget_optimizer(budget, budgets, sigma, time_horizon, n_tuning=1000, n_expe
 
                 collected_rewards = sum(collected_rewards_per_subcampaign)
                 regrets_per_experiment[e].append(optimal_click - collected_rewards)
-                budget_allocation = dynamic_opt(budget_list=list_budgets, budget_index=budget_index,
+                if (t!=1):
+                    budget_allocation = dynamic_opt(budget_list=list_budgets, budget_index=budget_index,
                                                 rewards_per_subcampaign=rewards_per_subcampaign)
+                    #print('napposacco attivato: ', budget_allocation)
 
             for subcampaign in [1, 2, 3]:
                 rewards_per_subcampaign_per_experiment[subcampaign - 1][e] = gpts_learner[subcampaign - 1].means
@@ -195,6 +216,7 @@ def budget_optimizer(budget, budgets, sigma, time_horizon, n_tuning=1000, n_expe
                     plt.fill(np.concatenate([x_real, x_real[::-1]]),
                              np.concatenate([y_pred - 1.96 * sigma, (y_pred + 1.96 * sigma)[::-1]]),
                              alpha=.5, fc='b', ec='None', label='95% Confidence Interval')
+                    plt.plot(optimal_budget_allocation[i], n_for_b[i + 1](optimal_budget_allocation[i]),'y*',markersize=12)
 
                 plt.xlabel('Budget')
                 plt.ylabel('Number of clicks')
@@ -217,12 +239,12 @@ def budget_optimizer(budget, budgets, sigma, time_horizon, n_tuning=1000, n_expe
         fig = plt.figure()
         plt.xlabel('Time')
         plt.ylabel('Number of clicks lost')
-        plt.title("Cumulative regret during the first phase")
+        plt.title("Cumulative regret (20 experiments)")
 
         for iteration in range(len(budgets)):
             plt.plot(np.cumsum(np.mean(regrets[iteration], axis=0)),label='%s arms' % len(budgets[iteration]))
         if sliding_window:
-            plt.vlines([i * time_horizon for i in abrupt_phases], 0,5000, colors='r', linestyles='solid', label = 'Phase change')
+            plt.vlines([i * time_horizon for i in abrupt_phases], 0,8000, colors='r', linestyles='solid', label = 'Phase change')
         plt.legend()
 
         if sliding_window:
