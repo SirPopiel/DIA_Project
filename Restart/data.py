@@ -34,6 +34,12 @@ sigma = 10
 n_for_b = None
 n_proportion_phases = None
 
+ad_pricing_range_max = {
+    1: 3000,
+    2: 1000,
+    3: 100
+} # from 0 -> 1 to 0 -> range_max
+
 if sliding_window:
     # Functions that assigns the number of clicks to a given budget
     # They are monotone increasing in [0,1]
@@ -88,7 +94,14 @@ prices = np.linspace(price_min, price_max, n_arms_pricing)
 p = {
     1: (lambda x: (0.7 * np.exp(-(x - 50) ** (1 / 2) / 20))),
     2: (lambda x: (0.9 * np.exp(-(x - 50) ** (1 / 2) / 20))),
-    3: (lambda x: (0.5 * np.exp(-(x - 50) ** (1 / 2) / 20)))
+    3: (lambda x: (0.5 * np.exp(-(x*x*x - 50) ** (1 / 2) / 50)))
+}
+
+# Expected price of selling given price
+p_star = {
+    1: (lambda x: (x-price_min)/(price_max-price_min) * p[1](x)),
+    2: (lambda x: (x-price_min)/(price_max-price_min) * p[2](x)),
+    3: (lambda x: (x-price_min)/(price_max-price_min) * p[3](x)),
 }
 
 
