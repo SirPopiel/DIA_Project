@@ -93,6 +93,16 @@ p = {
     1: (lambda x: (0.7 * np.exp(-(x - 50) ** (1 / 2) / 20))),
     2: (lambda x: (0.9 * np.exp(-(x - 50) ** (1 / 2) / 20))),
     3: (lambda x: (0.5 * np.exp(-(x*x*x - 50) ** (1 / 2) / 50)))
+<<<<<<< HEAD
+=======
+}
+
+# Expected price of selling given price
+p_star = {
+    1: (lambda x: (x-price_min)/(price_max-price_min) * p[1](x)),
+    2: (lambda x: (x-price_min)/(price_max-price_min) * p[2](x)),
+    3: (lambda x: (x-price_min)/(price_max-price_min) * p[3](x)),
+>>>>>>> 9f11bf72f2c93c202a5ed2662c904075cf9127ef
 }
 
 # Expected price of selling given price
