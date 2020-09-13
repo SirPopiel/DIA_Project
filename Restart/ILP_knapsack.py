@@ -3,19 +3,19 @@ import pulp
 
 def get_reward(i, sub, rewards_per_subcampaign):
     '''Returns the reward at the given index for the given subcampaign from the list of list of rewards.'''
-    
+
     return rewards_per_subcampaign[sub - 1][i]
 
 
 def get_budget(i, budgets): # ???
     '''Returns the budget at the current index'''
-    
+
     return budgets[i]
 
 
-def good_knapsack(list_budgets, rewards_per_subcampaign, budget):
+def ILP_knapsack(list_budgets, rewards_per_subcampaign, budget):
     '''Finds the optimal allocation as a solution of a knapsack problem. It considers a list of budgets, rewards per subcampaing, current budget.'''
-    
+
     n_arms = len(list_budgets) # finds the number of arms
 
     # Defines the choice for the LP problem
@@ -62,7 +62,7 @@ def good_knapsack(list_budgets, rewards_per_subcampaign, budget):
     # For each arm gets the reward of the chosen subcampaign
     for choice in range(n_arms):
         if sub_1_choice[choice].value() == 1.0:
-            new_allocations[1] = choice #list_budgets[choice]  # 
+            new_allocations[1] = choice #list_budgets[choice]  #
         if sub_2_choice[choice].value() == 1.0:
             new_allocations[2] = choice# list_budgets[choice]  # choice
         if sub_3_choice[choice].value() == 1.0:

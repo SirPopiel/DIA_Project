@@ -1,6 +1,4 @@
 import numpy as np
-#from budget_optimizer import *
-#from budget_optimizer_ts import *
 import time
 
 
@@ -8,12 +6,14 @@ import time
 verbose = True
 graphics = True
 debug = True  # if True it shows useless plots
-sliding_window = False
-n_experiments = 20
+sliding_window = False # if True the experiment is conducted with time-varying demand curves
+n_experiments = 5
 adv_budget = 1.0
 n_arms_adv = 25
 #n_arms_adv = [9,17,25,33]
-time_horizon = 300  # time used for optimizing the budget allocation
+# in order to compare graphically multiple instances, multiple arms can be tested
+
+time_horizon = 200  # time used for optimizing the budget allocation
 window_size = int(time_horizon/10)
 
 min_budget = 0.0
@@ -35,7 +35,7 @@ n_for_b = None
 n_proportion_phases = None
 
 if sliding_window:
-    # Functions that assigns the number of clicks to a given budget
+    # Functions that assign the number of clicks to a given budget
     # They are monotone increasing in [0,1]
     n_for_b = {
         1: [(lambda x: 100 * (1.0 - np.exp(-5 * x + 2 * x ** 3))),
@@ -51,8 +51,6 @@ if sliding_window:
             (lambda x: 100 * (1.0 - np.exp(-5 * x + x ** 2 + 1 * x ** 3)))
             ]
     }
-
-    # sliding window funziona su funzioni costanti
 
     # Proportion of the time horizon in which each phase takes place
     n_proportion_phases = {
@@ -78,7 +76,7 @@ else:
     n_proportion_phases = None
     abrupt_phases = None
 
-
+'''
 n_arms_pricing = 20
 price_min = 50
 price_max = 70
@@ -90,18 +88,4 @@ p = {
     2: (lambda x: (0.9 * np.exp(-(x - 50) ** (1 / 2) / 20))),
     3: (lambda x: (0.5 * np.exp(-(x - 50) ** (1 / 2) / 20)))
 }
-
-
-# MAIN DI TEST CURSATO, NON FUNZIONA DATO CHE C'è UN CIRCULAR IMPORT
-'''
-def main():
-    start_time = time.time()
-    budget_optimizer_ts(budget=adv_budget, list_budgets=budgets, sigma=sigma, time_horizon=time_horizon,
-                        sliding_window=sliding_window, abrupt_phases=abrupt_phases, n_experiments=n_experiments,
-                        graphics=graphics, verbose=verbose)
-    print("\nTotal completion time: \n" + "--- %.2f seconds ---" % (time.time() - start_time))
-
-
-if __name__ == "__main__":
-    main()
 '''

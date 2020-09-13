@@ -9,8 +9,9 @@ from bidding_environment import *
 from moving_bidding_environment import *
 from gpts_learner import *
 from SlidingWindowsGPTS_Learner import *
-from good_knapsack import *
 from optimization import dynamic_opt
+from scipy.optimize import curve_fit
+
 
 #seed = 15
 #random.seed(seed)
@@ -25,8 +26,9 @@ def t_to_phase(subcampaign, time_horizon, t_):
 
 
 def tuning_kernel(f, list_budgets, n_tuning, tune = True):
-    # Tuning hyper parameters of the gps
-    # In order to do this we assume at this point we know the curves which characterize our environments
+    # Tuning hyper parameters of the gpts
+    # In order to do this we assume, at this point, we know the curves which characterize our environments
+
     start_time_tuning = time.time()
     rng = np.random.seed(0)
     alpha = 5.0
@@ -34,6 +36,7 @@ def tuning_kernel(f, list_budgets, n_tuning, tune = True):
         kernel = C(1e2, (1e1, 1e2)) * RBF(1e-1, (1e-2, 1e1))
     else:
         kernel = C(14.1**2, constant_value_bounds = 'fixed') * RBF(length_scale = 0.271, length_scale_bounds= 'fixed')
+        # already optimized hyperparameters
 
     gp = GaussianProcessRegressor(kernel=kernel, alpha=alpha ** 2, normalize_y=True,
                                   n_restarts_optimizer=9, random_state = rng)
@@ -43,6 +46,8 @@ def tuning_kernel(f, list_budgets, n_tuning, tune = True):
     x_real = np.atleast_2d(x_real).T
 
     gp.fit(x_real, y_real)
+
+    # commented chunk of code to see how the gp fit the curve
     '''
     x = np.linspace(0, 1, 25)
     x = np.repeat(x, 50)
@@ -55,6 +60,7 @@ def tuning_kernel(f, list_budgets, n_tuning, tune = True):
     plt.plot(x, n_for_b[1](x), 'r', label='True function')
     plt.legend()
     '''
+
     print("Tuning kernel's hyper-parameters' time: \n" + "--- %.2f seconds ---" % (time.time() - start_time_tuning))
     return gp.kernel_
 
@@ -98,6 +104,7 @@ def budget_optimizer(budget, budgets, sigma, time_horizon, n_tuning=1000, n_expe
             rewards_per_subcampaign = [[] for _ in range(3)]
             gpts_learner = []
 
+            #initialization of environment
             for subcampaign in [1, 2, 3]:
                 if sliding_window:
                     envs.append(MovingBiddingEnvironment(budgets=list_budgets, sigma=sigma, time_horizon=time_horizon,
@@ -110,12 +117,8 @@ def budget_optimizer(budget, budgets, sigma, time_horizon, n_tuning=1000, n_expe
                                                      kernel=kernel))
     #                                                 kernel=tuning_kernel(n_for_b[subcampaign], list_budgets, n_tuning)))
 
-            # Initializing the budget allocation evenly
-            #budget_allocation = np.max(list_budgets[np.argwhere(list_budgets <= budget / 3)]) * np.ones(3)
 
-            # sbagliato, ma sbagliato anche mettere split troppo vicine a 0!!! In ogni caso avrò sottostima
-
-            # Initializing the budget allocation randomly
+            # Initializing the budget allocation randomly does not work too well (when one subcampaign starts too close to 0)
             '''
             budget_sub1 = random.choice(list_budgets)
             budget_sub2 = random.choice(list_budgets[np.argwhere(list_budgets <= budget - budget_sub1)])
@@ -124,27 +127,25 @@ def budget_optimizer(budget, budgets, sigma, time_horizon, n_tuning=1000, n_expe
             # In order to don't give any preference over any subcampaign
             np.random.shuffle(budget_allocation)
             '''
+
             if not n_arms%2:
+                # version for even numbers
                 i = np.random.randint(round((n_arms-1)/4)-1,round((n_arms-1)/4)+1)
                 j = np.random.randint(round((n_arms-1)/4)-1,round((n_arms-1)/4)+1)
-                #print(i,j,n_arms)
-                # i e j da 0 a n/2
-                # bracci pari se si vuole somma intera
                 budget_allocation = [list_budgets[int(n_arms/2)-i],list_budgets[int(n_arms/2)-j-1],list_budgets[(i+j)]]
                 np.random.shuffle(budget_allocation)
+                # random allocation summing to 1, while not having any subcampaign too close to 0
 
             else:
-                # Somma a 1
+                # version for odd numbers
                 i = np.random.randint(round((n_arms-1)/4)-1,round((n_arms-1)/4)+1)
                 j = np.random.randint(round((n_arms-1)/4)-1,round((n_arms-1)/4)+1)
-                #print(i,j,n_arms)
-                # i e j da 0 a n/2
-                # bracci pari se si vuole somma intera
-                budget_allocation = [list_budgets[int(n_arms/2)-i],list_budgets[int(n_arms/2)-j-1],list_budgets[(i+j)]]
+                budget_allocation = [list_budgets[int(n_arms/2)-i],list_budgets[int(n_arms/2)-j],list_budgets[(i+j)]]
                 np.random.shuffle(budget_allocation)
+                # random allocation summing to 1, while not having any subcampaign too close to 0
 
 
-            print('budget iniziale: ', budget_allocation)
+            print('Initial Budget: ', budget_allocation)
 
 
             if sliding_window:
@@ -180,7 +181,6 @@ def budget_optimizer(budget, budgets, sigma, time_horizon, n_tuning=1000, n_expe
                 if (t!=1):
                     budget_allocation = dynamic_opt(budget_list=list_budgets, budget_index=budget_index,
                                                 rewards_per_subcampaign=rewards_per_subcampaign)
-                    #print('napposacco attivato: ', budget_allocation)
 
             for subcampaign in [1, 2, 3]:
                 rewards_per_subcampaign_per_experiment[subcampaign - 1][e] = gpts_learner[subcampaign - 1].means
@@ -196,6 +196,7 @@ def budget_optimizer(budget, budgets, sigma, time_horizon, n_tuning=1000, n_expe
         regrets.append(regrets_per_experiment)
         print('\n')
 
+    # plotting regrets and learned curves
     if graphics:
         for i in range(3):
             fig = plt.figure()
@@ -217,6 +218,8 @@ def budget_optimizer(budget, budgets, sigma, time_horizon, n_tuning=1000, n_expe
                              np.concatenate([y_pred - 1.96 * sigma, (y_pred + 1.96 * sigma)[::-1]]),
                              alpha=.5, fc='b', ec='None', label='95% Confidence Interval')
                     plt.plot(optimal_budget_allocation[i], n_for_b[i + 1](optimal_budget_allocation[i]),'y*',markersize=12)
+
+
 
                 plt.xlabel('Budget')
                 plt.ylabel('Number of clicks')
@@ -243,6 +246,7 @@ def budget_optimizer(budget, budgets, sigma, time_horizon, n_tuning=1000, n_expe
 
         for iteration in range(len(budgets)):
             plt.plot(np.cumsum(np.mean(regrets[iteration], axis=0)),label='%s arms' % len(budgets[iteration]))
+
         if sliding_window:
             plt.vlines([i * time_horizon for i in abrupt_phases], 0,8000, colors='r', linestyles='solid', label = 'Phase change')
         plt.legend()
@@ -271,10 +275,6 @@ def budget_optimizer(budget, budgets, sigma, time_horizon, n_tuning=1000, n_expe
         f.write("The budget is split as follow: " + str(final_budget_allocation) + "\n")
         f.write("Expected clicks with the optimal budget allocation: " + str(adv_rew) + "\n")
         f.close()
-
-        duration = 2000  # milliseconds
-        freq = 440  # Hz
-        #Beep(freq, duration)
 
 
 

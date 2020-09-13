@@ -52,7 +52,7 @@ def dynamic_opt(budget_list, budget_index, rewards_per_subcampaign, return_mode=
     return
 
 
-# stupid test main
+# test main
 
 def main():
     rewards_per_subcampaign = [[0, 2, 3, 8, 8], [0, 4, 4, 4, 4], [0, 3, 5, 6, 7]]

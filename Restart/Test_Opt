@@ -1,4 +1,6 @@
-from good_knapsack import *
+# test main for the optimization algorithm vs ILP formulation
+
+from ILP_knapsack import *
 from optimization import dynamic_opt
 import numpy as np
 from data import *
@@ -12,11 +14,9 @@ sigma_cap = []
 n_exp = 30
 comparison = False
 ic = True
-x = np.arange(10,400,20)
+x = np.arange(10,150,20)
 
-# complessità di ilp è np-completa -> peggio per forza o quasi
-
-# facciamo vedere che scala lineare nel numero di campagne?
+# NB: the LP formulation is rather slow, so it's better not to use more than 150 campaigns
 
 for n_arms_adv in x:
     if isinstance(n_arms_adv, list):
@@ -42,7 +42,7 @@ for n_arms_adv in x:
 
         if comparison:
             start_time_experiment = time.time()
-            good_knapsack(list_budgets=list_budgets, budget=budget_index,
+            ILP_knapsack(list_budgets=list_budgets, budget=budget_index,
                                                     rewards_per_subcampaign=real_rewards)
             t2.append(time.time()-start_time_experiment)
     t_filo.append(np.mean(t1))
@@ -54,9 +54,6 @@ for n_arms_adv in x:
             sigma_cap.append((np.var(t2))**0.5)
     print('Tested with ', n_arms_adv, 'arms')
 
-
-#print(t_filo)
-#print(t_cap)
 
 plt.plot(x,t_filo,'b',label='Dynamic Programming algorithm')
 
