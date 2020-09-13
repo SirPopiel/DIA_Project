@@ -7,7 +7,7 @@ from learner import *
 class GPTS_Learner(Learner):
     '''Gaussian Process Thompson Sampling Learner inheriting from the Learner class.'''
 
-    def __init__(self, n_arms, arms, kernel=None):
+    def __init__(self, n_arms, arms, kernel=None, plain_gp=False):
         '''Initialize the Gaussian Process Thompson Sampling Learner with a number of arms, the arms and a kernel.'''
 
         super(GPTS_Learner, self).__init__(n_arms) # supercharges the init from the learner
@@ -27,8 +27,11 @@ class GPTS_Learner(Learner):
         else:
             n_restarts = 0
 
-        # Sets the Gaussian Process Regressor from the given kernel
-        self.gp = GaussianProcessRegressor(kernel=kernel, alpha=alpha ** 2, normalize_y=True,
+        if plain_gp:
+            self.gp = GaussianProcessRegressor()
+        else:
+            # Sets the Gaussian Process Regressor from the given kernel
+            self.gp = GaussianProcessRegressor(kernel=kernel, alpha=alpha ** 2, normalize_y=True,
                                            n_restarts_optimizer=n_restarts)
 
     def update_observations(self, pulled_arm, reward):

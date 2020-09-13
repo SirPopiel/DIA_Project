@@ -69,4 +69,10 @@ def ILP_knapsack(list_budgets, rewards_per_subcampaign, budget):
             new_allocations[3] = choice #list_budgets[choice]  # choice
 
     # Returns the allocation
+    if 1 not in new_allocations.keys():
+        new_allocations[1] = 0
+    if 2 not in new_allocations.keys():
+        new_allocations[2] = 0
+    if 3 not in new_allocations.keys():
+        new_allocations[3] = 0
     return new_allocations
