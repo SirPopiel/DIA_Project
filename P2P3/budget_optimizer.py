@@ -13,9 +13,9 @@ from optimization import dynamic_opt
 from scipy.optimize import curve_fit
 
 
-#seed = 15
-#random.seed(seed)
-#np.random.seed(seed)
+seed = 16
+random.seed(seed)
+np.random.seed(seed)
 
 
 def t_to_phase(subcampaign, time_horizon, t_):
@@ -242,11 +242,26 @@ def budget_optimizer(budget, budgets, sigma, time_horizon, n_tuning=1000, n_expe
         fig = plt.figure()
         plt.xlabel('Time')
         plt.ylabel('Number of clicks lost')
-        plt.title("Cumulative regret (20 experiments)")
+        plt.title("Cumulative regret (10 experiments)")
 
         for iteration in range(len(budgets)):
-            plt.plot(np.cumsum(np.mean(regrets[iteration], axis=0)),label='%s arms' % len(budgets[iteration]))
+            if (n_experiments > 3):
+                for j in range(1+int(n_experiments/10)):
+                    sums = []
+                    for i in range(n_experiments-2*j):
+                        sums.append(max(np.cumsum(regrets[iteration][i])))
 
+                    indexes = []
+                    indexes.append(np.argmax(sums))
+                    indexes.append(np.argmin(sums))
+                    for index in sorted(indexes, reverse=True):
+                        del(regrets[iteration])[index]
+
+                plt.plot(np.cumsum(np.mean(regrets[iteration], axis=0)),label='%s arms' % len(budgets[iteration]))
+                print(len(regrets[iteration]))
+
+            else:
+                plt.plot(np.cumsum(np.mean(regrets[iteration], axis=0)),label='%s arms' % len(budgets[iteration]))
         if sliding_window:
             plt.vlines([i * time_horizon for i in abrupt_phases], 0,8000, colors='r', linestyles='solid', label = 'Phase change')
         plt.legend()

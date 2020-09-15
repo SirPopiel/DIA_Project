@@ -8,13 +8,13 @@ graphics = True
 debug = True  # if True it shows useless plots
 sliding_window = False # if True the experiment is conducted with time-varying demand curves
 show_curves = False
-n_experiments = 4
+n_experiments = 10
 adv_budget = 1.0
-n_arms_adv = 25
-#n_arms_adv = [9,17,25,33]
+#n_arms_adv = 20
+n_arms_adv = [9,17,25,33]
 # in order to compare graphically multiple instances, multiple arms can be tested
 
-time_horizon = 300  # time used for optimizing the budget allocation
+time_horizon = 250  # time used for optimizing the budget allocation
 window_size = int(time_horizon/10)
 
 min_budget = 0.0
