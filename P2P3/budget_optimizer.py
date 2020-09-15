@@ -13,7 +13,7 @@ from optimization import dynamic_opt
 from scipy.optimize import curve_fit
 
 
-seed = 16
+seed = 18
 random.seed(seed)
 np.random.seed(seed)
 
@@ -127,6 +127,7 @@ def budget_optimizer(budget, budgets, sigma, time_horizon, n_tuning=1000, n_expe
             # In order to don't give any preference over any subcampaign
             np.random.shuffle(budget_allocation)
             '''
+
 
             if not n_arms%2:
                 # version for even numbers
@@ -258,7 +259,7 @@ def budget_optimizer(budget, budgets, sigma, time_horizon, n_tuning=1000, n_expe
                         del(regrets[iteration])[index]
 
                 plt.plot(np.cumsum(np.mean(regrets[iteration], axis=0)),label='%s arms' % len(budgets[iteration]))
-                print(len(regrets[iteration]))
+                # I do not consider min and max results
 
             else:
                 plt.plot(np.cumsum(np.mean(regrets[iteration], axis=0)),label='%s arms' % len(budgets[iteration]))
