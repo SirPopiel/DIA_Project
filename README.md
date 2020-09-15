@@ -4,10 +4,10 @@ Course held @ Politecnico di Milano by Nicola Gatti and Alessandro Nuara
 Pricing and Advertising
 
 Developed by:
-Federico Capello
-Filippo Fedeli
-Gianmarco Genalti
-Jean Paul Guglielmo Baroni
+Federico Capello, 
+Filippo Fedeli, 
+Gianmarco Genalti, 
+Jean Paul Guglielmo Baroni, 
 Carlo Augusto Vitellio
 
 
