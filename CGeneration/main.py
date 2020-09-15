@@ -2,7 +2,6 @@ from utilities import *
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse
 import time
 
 # Data and parameters

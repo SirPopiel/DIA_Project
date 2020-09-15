@@ -7,13 +7,14 @@ verbose = True
 graphics = True
 debug = True  # if True it shows useless plots
 sliding_window = False # if True the experiment is conducted with time-varying demand curves
-n_experiments = 5
+show_curves = False
+n_experiments = 4
 adv_budget = 1.0
 n_arms_adv = 25
 #n_arms_adv = [9,17,25,33]
 # in order to compare graphically multiple instances, multiple arms can be tested
 
-time_horizon = 200  # time used for optimizing the budget allocation
+time_horizon = 300  # time used for optimizing the budget allocation
 window_size = int(time_horizon/10)
 
 min_budget = 0.0
@@ -103,8 +104,37 @@ p_star = {
 }
 
 
-ad_pricing_range_max = {
-    1: 3000,
-    2: 1000,
-    3: 100
-} # from 0 -> 1 to 0 -> range_max
+if show_curves:
+    import matplotlib.pyplot as plt
+    if not sliding_window:
+
+        xpts = np.linspace(0, 1, 100)
+
+        plt.plot(xpts, n_for_b[1](xpts), label= '1', color = '#ff7f0e')
+        plt.plot(xpts, n_for_b[2](xpts), label= '2', color = '#2ca02c')
+        plt.plot(xpts, n_for_b[3](xpts), label= '3', color = '#1f77b4')
+
+        plt.xlabel('Budget')
+        plt.ylabel('Number of clicks')
+        plt.title("Subcampaigns")
+
+        plt.legend()
+
+        plt.show()
+
+    else:
+
+        xpts = np.linspace(0, 1, 100)
+
+        for i in range(0,3):
+            plt.plot(xpts, n_for_b[1][i](xpts), label= '1')
+            plt.plot(xpts, n_for_b[2][i](xpts), label= '2')
+            plt.plot(xpts, n_for_b[3][i](xpts), label= '3')
+
+            plt.xlabel('Budget')
+            plt.ylabel('Number of clicks')
+            plt.title("Subcampaigns, phase %d" % (i+1))
+
+            plt.legend()
+
+            plt.show()
