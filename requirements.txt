@@ -61,7 +61,7 @@ matplotlib == 3.2.1
 # C:\Users\ffede\OneDrive\Desktop\DIA_Project\Utilities\gpts_example.py: 1
 # C:\Users\ffede\OneDrive\Desktop\DIA_Project\Utilities\non_stationary_example.py: 1
 # C:\Users\ffede\OneDrive\Desktop\DIA_Project\main_deprecated.py: 1
-numpy == 1.18.3
+numpy == 1.22.0
 
 # C:\Users\ffede\OneDrive\Desktop\DIA_Project\P2P3\budget_optimizer.py: 13
 scipy == 1.4.1
