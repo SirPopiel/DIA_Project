@@ -64,7 +64,7 @@ matplotlib == 3.2.1
 numpy == 1.18.3
 
 # C:\Users\ffede\OneDrive\Desktop\DIA_Project\P2P3\budget_optimizer.py: 13
-scipy == 1.4.1
+scipy == 1.10.0
 
 # C:\Users\ffede\OneDrive\Desktop\DIA_Project\P2P3\Hyperparameters_opt.ipynb: 3
 # C:\Users\ffede\OneDrive\Desktop\DIA_Project\P2P3\SlidingWindowsGPTS_Learner.py: 4
